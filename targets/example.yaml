@@ -1,0 +1,33 @@
+# Target profile template — copy to targets/<app>-<env>.yaml and fill in.
+# Real profiles are gitignored; see targets/README.md for field docs and rules.
+name: MyApp Staging
+base_url: https://staging.myapp.example.com/
+
+credentials:
+  source: .env            # never put secret values in this file
+  username_key: USER      # env var names to read from that source
+  password_key: PASSWORD
+
+login: |
+  Fill the "Email" and "Password" textboxes, click "Log in".
+  If a workspace picker follows, click the workspace by its visible label, then "Continue".
+  Landing page after login is /dashboard.
+
+tenants:
+  safe_to_mutate: QA Sandbox        # dedicated test tenant — nobody depends on its data.
+                                    # Omit this key entirely if no such tenant exists;
+                                    # crud-tester then stops and asks instead of guessing.
+  read_only_rich_data: Demo Org     # realistic data for read-path testing (optional)
+
+recovery:                           # optional — known ways to unstick the app
+  stale_session: |
+    If a request 401s mid-session, log out and back in. If login then fails with
+    "already signed in", clear localStorage + cookies for the site and retry.
+
+known_noise: []                     # pre-existing console/network errors, each traceable to a
+                                    # filed defect or an accepted condition — never a guess
+
+app_notes: |
+  Field constraints and gotchas learned from prior runs, e.g.:
+  - Phone field rejects "+" prefixes; enter digits only.
+  - Saving a profile fires two identical PUT requests (known, filed as D12).

@@ -1,0 +1,12 @@
+{
+  "name": "test-better",
+  "displayName": "test-better",
+  "description": "Web QA testing skills for Claude Code — browser flows, accessibility, visual regression, performance, SEO, i18n, bug triage, and Jira filing, driven by Playwright.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Ambreen Khan"
+  },
+  "homepage": "https://softwaretestingtrends.com",
+  "repository": "https://github.com/softwaretestingtrends/test-better",
+  "license": "MIT"
+}

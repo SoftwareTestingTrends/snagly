@@ -1,0 +1,40 @@
+# Credentials — the target profiles and jira-connector read these; never commit them.
+.env
+*.env
+
+# Local Claude Code state (permission grants, local skill symlink) — the
+# distributable skills live in skills/ at the repo root
+.claude/
+
+# Target profiles describe YOUR internal environments (URLs, tenants, app notes) —
+# keep them local. Only the fictional template is committed.
+targets/*.yaml
+!targets/example.yaml
+
+# Dependencies
+node_modules/
+
+# Playwright session artifacts (snapshots, console logs, traces)
+.playwright-mcp/
+.playwright-cli/
+.playwright/
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+
+# QA run artifacts — local test history (reports, evidence, screenshots);
+# contains staging data and test-account details, not part of the shareable toolkit
+runs/
+bugs/
+snapshots/
+scenarios/
+test-cases/
+docs/
+
+# Superpowers plugin session state and session work-products (plans/specs
+# from past working sessions — contain personal aliases and env specifics)
+.superpowers/

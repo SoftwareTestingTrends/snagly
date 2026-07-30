@@ -28,7 +28,7 @@ Accept a bug from any of:
   JIRA=$(ls "${CLAUDE_PROJECT_DIR:-.}"/skills/jira-connector/scripts/jira_client.py \
             "${CLAUDE_PROJECT_DIR:-.}"/.claude/skills/jira-connector/scripts/jira_client.py \
             "$HOME"/.claude/skills/jira-connector/scripts/jira_client.py \
-            "$HOME"/.claude/plugins/cache/*/test-better/*/skills/jira-connector/scripts/jira_client.py \
+            "$HOME"/.claude/plugins/cache/*/snagly/*/skills/jira-connector/scripts/jira_client.py \
             2>/dev/null | head -1)
   python3 "$JIRA" get PROJ-123
   python3 "$JIRA" comments PROJ-123          # investigation notes often live here

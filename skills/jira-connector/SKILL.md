@@ -48,14 +48,14 @@ dry-run — nothing changes without `--apply`.**
 ## Setup — one time
 
 **Locate the script** (works whether this skill runs from a clone of this repo, as a
-**personal skill** under `~/.claude/skills/`, or as part of the installed **test-better
+**personal skill** under `~/.claude/skills/`, or as part of the installed **snagly
 plugin**). Run this once per shell; every example below uses `$JIRA`:
 
 ```bash
 JIRA=$(ls "${CLAUDE_PROJECT_DIR:-.}"/skills/jira-connector/scripts/jira_client.py \
           "${CLAUDE_PROJECT_DIR:-.}"/.claude/skills/jira-connector/scripts/jira_client.py \
           "$HOME"/.claude/skills/jira-connector/scripts/jira_client.py \
-          "$HOME"/.claude/plugins/cache/*/test-better/*/skills/jira-connector/scripts/jira_client.py \
+          "$HOME"/.claude/plugins/cache/*/snagly/*/skills/jira-connector/scripts/jira_client.py \
           2>/dev/null | head -1)
 ```
 

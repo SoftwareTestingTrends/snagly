@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Thin Jira Cloud REST client for the test-better toolkit.
+"""Thin Jira Cloud REST client for the snagly toolkit.
 
 Reusable building block: read + write Jira issues via the REST API v3 so higher-level
 QE skills (user-story-reviewer, bug-analyzer, bug-creator, test-case-generator ...) don't

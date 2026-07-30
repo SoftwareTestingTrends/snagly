@@ -43,7 +43,7 @@ component + symptom words) scoped to the project, recent-first:
 JIRA=$(ls "${CLAUDE_PROJECT_DIR:-.}"/skills/jira-connector/scripts/jira_client.py \
           "${CLAUDE_PROJECT_DIR:-.}"/.claude/skills/jira-connector/scripts/jira_client.py \
           "$HOME"/.claude/skills/jira-connector/scripts/jira_client.py \
-          "$HOME"/.claude/plugins/cache/*/test-better/*/skills/jira-connector/scripts/jira_client.py \
+          "$HOME"/.claude/plugins/cache/*/snagly/*/skills/jira-connector/scripts/jira_client.py \
           2>/dev/null | head -1)
 python3 "$JIRA" whoami                          # fresh session? verify auth first
 python3 "$JIRA" search --jql 'project = PROJ AND issuetype = Bug AND text ~ "policy holder" ORDER BY created DESC' --max 15

@@ -1,6 +1,6 @@
-# test-better — web QA testing skills for Claude Code
+# snagly — web QA testing skills for Claude Code
 
-**test-better** is a set of Claude Code skills for testing web applications — browser flows, accessibility, visual regression, performance, SEO, i18n, bug triage — driven by Playwright (via the Playwright MCP server or `@playwright/cli`), plus a small Jira family for turning findings into tracked tickets. Each skill has a single, well-defined job; they're designed to hand off to each other rather than duplicate work.
+**snagly** is a set of Claude Code skills for testing web applications — browser flows, accessibility, visual regression, performance, SEO, i18n, bug triage — driven by Playwright (via the Playwright MCP server or `@playwright/cli`), plus a small Jira family for turning findings into tracked tickets. Each skill has a single, well-defined job; they're designed to hand off to each other rather than duplicate work.
 
 A [Software Testing Trends](https://softwaretestingtrends.com) project — *learn smarter, test better*.
 
@@ -31,14 +31,14 @@ Everything else runs with just the core setup.
 
 ### Install the skills
 
-**As a plugin (recommended)** — one install, available in every project, skills namespaced as `test-better:<skill>`:
+**As a plugin (recommended)** — one install, available in every project, skills namespaced as `snagly:<skill>`:
 
 ```
-/plugin marketplace add softwaretestingtrends/test-better
-/plugin install test-better@test-better
+/plugin marketplace add softwaretestingtrends/snagly
+/plugin install snagly@snagly
 ```
 
-**Or from a clone** — clone this repo, then add it as a local marketplace (`/plugin marketplace add /path/to/test-better`) and install as above. (The skills live in `skills/`, which Claude Code only discovers via plugin install; if you prefer plain project skills, symlink or copy `skills/` to `.claude/skills/` inside your clone.)
+**Or from a clone** — clone this repo, then add it as a local marketplace (`/plugin marketplace add /path/to/snagly`) and install as above. (The skills live in `skills/`, which Claude Code only discovers via plugin install; if you prefer plain project skills, symlink or copy `skills/` to `.claude/skills/` inside your clone.)
 
 Either way, run the toolkit from the project directory where you want its working files — target profiles are read from `targets/`, and run artifacts land in `runs/`, `bugs/`, `snapshots/`, `scenarios/`, `test-cases/` relative to where you work.
 
@@ -47,11 +47,11 @@ Either way, run the toolkit from the project directory where you want its workin
 New releases are published as version bumps to this repo — no reinstall needed:
 
 ```
-/plugin marketplace update test-better    # fetch the latest release
+/plugin marketplace update snagly    # fetch the latest release
 /reload-plugins                           # apply it in the current session
 ```
 
-(Or just start a new session after the marketplace update.) Updates are **not automatic by default** for community marketplaces like this one — to opt in, open `/plugin` → Marketplaces → `test-better` → enable auto-update, and Claude Code will fetch new versions in the background and prompt you to reload. Each release is also tagged on GitHub (`v1.x.x`) if you need to see what changed or point at an older version.
+(Or just start a new session after the marketplace update.) Updates are **not automatic by default** for community marketplaces like this one — to opt in, open `/plugin` → Marketplaces → `snagly` → enable auto-update, and Claude Code will fetch new versions in the background and prompt you to reload. Each release is also tagged on GitHub (`v1.x.x`) if you need to see what changed or point at an older version.
 
 **Credentials** — never committed; `.gitignore` already excludes `.env`. Create a `.env` at the repo root:
 

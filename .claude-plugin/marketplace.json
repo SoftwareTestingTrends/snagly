@@ -9,7 +9,7 @@
     {
       "name": "snagly",
       "description": "30 interlocking web QA testing skills — browser flows, accessibility, visual regression, performance, SEO, i18n, bug triage, and Jira filing, driven by Playwright.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "source": "./"
     }
   ]

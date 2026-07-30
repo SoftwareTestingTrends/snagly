@@ -35,7 +35,7 @@ The saved file contains:
   "cookies": [
     {
       "name": "session_id",
-      "value": "abc123",
+      "value": "<cookie-value>",
       "domain": "example.com",
       "path": "/",
       "expires": 1893456000,
@@ -86,13 +86,13 @@ playwright-cli cookie-get session_id
 
 ```bash
 # Basic cookie
-playwright-cli cookie-set session abc123
+playwright-cli cookie-set session "$SESSION_COOKIE"
 
 # Cookie with options
-playwright-cli cookie-set session abc123 --domain=example.com --path=/ --httpOnly --secure --sameSite=Lax
+playwright-cli cookie-set session "$SESSION_COOKIE" --domain=example.com --path=/ --httpOnly --secure --sameSite=Lax
 
 # Cookie with expiration (Unix timestamp)
-playwright-cli cookie-set remember_me token123 --expires=1893456000
+playwright-cli cookie-set remember_me "$REMEMBER_TOKEN" --expires=1893456000
 ```
 
 ### Delete a Cookie
@@ -114,7 +114,7 @@ For complex scenarios like adding multiple cookies at once, use `run-code`:
 ```bash
 playwright-cli run-code "async page => {
   await page.context().addCookies([
-    { name: 'session_id', value: 'sess_abc123', domain: 'example.com', path: '/', httpOnly: true },
+    { name: 'session_id', value: '<session-cookie-value>', domain: 'example.com', path: '/', httpOnly: true },
     { name: 'preferences', value: JSON.stringify({ theme: 'dark' }), domain: 'example.com', path: '/' }
   ]);
 }"
@@ -165,7 +165,7 @@ For complex scenarios like setting multiple values at once, use `run-code`:
 ```bash
 playwright-cli run-code "async page => {
   await page.evaluate(() => {
-    localStorage.setItem('token', 'jwt_abc123');
+    localStorage.setItem('token', '<jwt-value>');
     localStorage.setItem('user_id', '12345');
     localStorage.setItem('expires_at', Date.now() + 3600000);
   });
@@ -236,7 +236,7 @@ playwright-cli run-code "async page => {
 playwright-cli open https://app.example.com/login
 playwright-cli snapshot
 playwright-cli fill e1 "user@example.com"
-playwright-cli fill e2 "password123"
+playwright-cli fill e2 "$PASSWORD"
 playwright-cli click e3
 
 # Save the authenticated state
@@ -253,7 +253,7 @@ playwright-cli open https://app.example.com/dashboard
 ```bash
 # Set up authentication state
 playwright-cli open https://example.com
-playwright-cli eval "() => { document.cookie = 'session=abc123'; localStorage.setItem('user', 'john'); }"
+playwright-cli eval "() => { document.cookie = 'session=<value>'; localStorage.setItem('user', 'john'); }"
 
 # Save state to file
 playwright-cli state-save my-session.json

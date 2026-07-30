@@ -325,6 +325,17 @@ A few things threaded through the whole toolkit, worth knowing before relying on
 - **Findings close their loop** — a defect gets an ID and evidence bundle (bug-triage), becomes a tracked ticket (bug-creator), and is re-verified against later builds (fix-verifier), so nothing lives only in a chat transcript.
 - **Two topics were deliberately kept out of scope**: general visual-design opinion (aesthetic judgment isn't checkable the way everything else here is) and anything resembling security penetration testing (form-fuzzing, auth-session-audit, and security-hygiene all draw a hard line against injection payloads, exploit attempts, or probing undocumented limits).
 
+## Security model
+
+Automated scanners rate some of these skills medium/high risk. That's a capability rating, not a finding — here is exactly what those capabilities are, so you can review before installing:
+
+- **What executes things**: `playwright-cli` runs `@playwright/cli` commands (and suggests installing it via npm); the audit skills fetch standard npm tools at run time (axe-core, web-vitals, pixelmatch, Retire.js); the Jira family runs the bundled `jira_client.py` (Python standard library only — read the script, it's one file). Everything runs under your agent's normal tool-permission prompts; nothing executes outside them.
+- **Credentials** are read only from environment variables / gitignored `.env` files, are never written into skill files or tickets, and the skills are instructed never to echo them.
+- **Writes are gated**: every Jira write is dry-run until `--apply`; data mutations are restricted to a tenant you explicitly name as safe, with run-marked records and cleanup-as-test.
+- **Hard lines**: no skill uses injection payloads, exploit attempts, or authentication bypass — `form-fuzzing`, `auth-session-audit`, and `security-hygiene` draw this line explicitly in their instructions.
+
+Skills are plain markdown — audit them yourself before use, as you should for any skill from any source.
+
 ## License
 
 [MIT](LICENSE)

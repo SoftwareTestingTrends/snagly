@@ -1,5 +1,5 @@
 {
-  "name": "test-better",
+  "name": "snagly",
   "description": "Web QA testing skills for Claude Code, by Software Testing Trends.",
   "owner": {
     "name": "Software Testing Trends",
@@ -7,7 +7,7 @@
   },
   "plugins": [
     {
-      "name": "test-better",
+      "name": "snagly",
       "description": "30 interlocking web QA testing skills — browser flows, accessibility, visual regression, performance, SEO, i18n, bug triage, and Jira filing, driven by Playwright.",
       "version": "1.0.0",
       "source": "./"

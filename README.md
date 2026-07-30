@@ -40,6 +40,14 @@ Everything else runs with just the core setup.
 
 **Or from a clone** — clone this repo, then add it as a local marketplace (`/plugin marketplace add /path/to/snagly`) and install as above. (The skills live in `skills/`, which Claude Code only discovers via plugin install; if you prefer plain project skills, symlink or copy `skills/` to `.claude/skills/` inside your clone.)
 
+**Or via [skills.sh](https://www.skills.sh)** — works for Claude Code and 70+ other agents (Cursor, Codex, OpenCode, …):
+
+```
+npx skills add softwaretestingtrends/snagly        # interactive picker, or --all
+```
+
+Note: this copies skill files into your agent's skills directory — unlike the plugin route, updates aren't automatic; re-run the command to refresh.
+
 Either way, run the toolkit from the project directory where you want its working files — target profiles are read from `targets/`, and run artifacts land in `runs/`, `bugs/`, `snapshots/`, `scenarios/`, `test-cases/` relative to where you work.
 
 ### Updating the plugin

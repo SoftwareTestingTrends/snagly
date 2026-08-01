@@ -14,7 +14,7 @@ A [Software Testing Trends](https://softwaretestingtrends.com) project — *lear
 - Node.js (a current LTS release)
 - Browser automation, either of:
   - the **Playwright MCP server**: `claude mcp add playwright -- npx @playwright/mcp@latest`
-  - or **`@playwright/cli`**: `npm install -g @playwright/cli@latest` (the skills fall back to a local `npx playwright cli` if it's already in your project)
+  - or **`@playwright/cli`**: `npm install -g @playwright/cli@latest`, then `playwright-cli install --skills` to add its own skill (snagly does not bundle a copy, so you always get the current upstream version)
 - Browser binaries: `npx playwright install chromium` — add `firefox webkit` if you'll use `cross-browser-matrix`
 
 **Fetched on demand** — nothing to pre-install, but runs need network access to npm the first time: axe-core (`accessibility-audit`), web-vitals (`performance-audit`), pixelmatch (`visual-regression`), Retire.js (`security-hygiene`), `@playwright/test` (`e2e-codegen`, `visual-regression`).
@@ -328,9 +328,11 @@ Turns a confirmed finding (bug-triage bundle, drafted ticket, fix-verifier regre
 
 ---
 
-## Mechanism (not a check)
+## Shared rules (not a check)
 
-`playwright-cli` documents how to drive the browser via `@playwright/cli` — it's the plumbing several skills use, not something to invoke by name for testing.
+`browser-safety` carries the credential, snapshot, untrusted-content, and headed-mode rules that every browser-driving skill above applies — it's a shared rule set, not something to invoke by name for testing. Each rule exists because something went wrong in a real run: filling a password leaks it into the transcript (the CLI echoes the resolved value), accessibility snapshots render credential fields as text, and page content is written by people outside your trust boundary.
+
+The browser itself is driven by `@playwright/cli` or the Playwright MCP server. snagly deliberately does **not** bundle a copy of the CLI's own skill — run `playwright-cli install --skills` to get it from upstream, so it stays current and you keep its improvements.
 
 ---
 
@@ -348,7 +350,7 @@ A few things threaded through the whole toolkit, worth knowing before relying on
 
 Automated scanners rate some of these skills medium/high risk. That's a capability rating, not a finding — here is exactly what those capabilities are, so you can review before installing:
 
-- **What executes things**: `playwright-cli` runs `@playwright/cli` commands (and suggests installing it via npm); the audit skills fetch standard npm tools at run time (axe-core, web-vitals, pixelmatch, Retire.js); the Jira family runs the bundled `jira_client.py` (Python standard library only — read the script, it's one file). Everything runs under your agent's normal tool-permission prompts; nothing executes outside them.
+- **What executes things**: the browser skills shell out to `@playwright/cli` (installed by you, not bundled here) or call Playwright MCP tools; the audit skills fetch standard npm tools at run time (axe-core, web-vitals, pixelmatch, Retire.js); the Jira family runs the bundled `jira_client.py` (Python standard library only — read the script, it's one file). Everything runs under your agent's normal tool-permission prompts; nothing executes outside them.
 - **Credentials** are read only from environment variables / gitignored `.env` files, are never written into skill files or tickets, and the skills are instructed never to echo them.
 - **Writes are gated**: every Jira write is dry-run until `--apply`; data mutations are restricted to a tenant you explicitly name as safe, with run-marked records and cleanup-as-test.
 - **Hard lines**: no skill uses injection payloads, exploit attempts, or authentication bypass — `form-fuzzing`, `auth-session-audit`, and `security-hygiene` draw this line explicitly in their instructions.

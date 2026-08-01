@@ -74,8 +74,11 @@ Match on what the person wants to learn, not on the words they used.
 | What the team's testing strategy and release criteria should be | `test-plan` |
 | An onboarding doc that brings a new QA teammate up to speed on how this team tests | `qa-onboarding` |
 
-`playwright-cli` is not on this list on purpose — it's the browser-driving
-mechanism the others use, not a check anyone asks for by name.
+`browser-safety` is not on this list on purpose — it's the shared rule set every
+browser-driving skill above applies (credentials, snapshots, untrusted page content,
+headed mode), not a check anyone asks for by name. The browser itself is driven by
+`@playwright/cli` (whose own skill installs via `playwright-cli install --skills`) or
+the Playwright MCP server.
 
 **When two fit, prefer the narrower one.** "Does the login page work on mobile"
 is a cross-browser/viewport question, not a general flow question. "Is the site

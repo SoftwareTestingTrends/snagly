@@ -30,6 +30,12 @@ check those variables are actually set in the environment (`printenv NAME >/dev/
 print a value. Nothing auto-loads `.env`, and many agents refuse to read `.env` files at all,
 so the usual fix is for the user to `export` the vars in the shell they launched you from.
 
+**Prefer a saved session over typing credentials.** Filling a password leaks it into the
+transcript — `playwright-cli fill` echoes the resolved value, and MCP tool calls carry the
+literal by construction. If a saved `storageState` exists, load it and start authenticated.
+If one doesn't, do the credential login **once** (with a throwaway account), save the state
+for reuse, and tell the user that password is now compromised and should be rotated.
+
 **Filling a credential form: verify every field, then blur, then submit.** Auth forms are
 where "it looked filled but submitted empty" happens most, and the app's error is always the
 same generic "invalid email or password" whichever field was wrong. So after filling and

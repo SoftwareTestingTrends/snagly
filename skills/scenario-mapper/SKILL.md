@@ -19,12 +19,22 @@ You need a starting URL. If the user didn't give one, ask for it — this is the
 
 ## Target profiles
 
-Check for a target profile (`targets/*.yaml`, see `targets/README.md`) before exploring. It supplies
+Check for a target profile (`targets/*.yaml`) before exploring. It supplies
 the base URL, credential env-var names, the login recipe including any tenant picker, and
 `app_notes` from prior runs — all of which save you rediscovering the same setup by trial and error.
 If none exists for this site, explore as normal, then **write one** as a by-product of the run:
 what you learned about login, tenants, and gotchas is exactly what the next run needs and would
 otherwise lose.
+
+**Create `targets/` if it doesn't exist, then copy
+[assets/target-profile-template.yaml](assets/target-profile-template.yaml) there as
+`targets/<app>-<env>.yaml` and fill it in — don't improvise the schema.** Most users install
+this toolkit as a plugin rather than cloning the repo, so a fresh working directory has no
+`targets/` folder and no template of its own; the copy in this skill is the one that travels. Those fields are all any skill reads; extra invented keys
+(site maps, flow lists, discovered scenarios) belong in the scenario CSV, not the profile, and
+go stale there. Two rules the template states and that matter most: credentials are env var
+*names*, never values, and on a production target you **omit `safe_to_mutate` entirely** rather
+than setting it to "none" — its absence is what makes `crud-tester` stop and ask.
 
 ## Core principle: look, don't finalize
 

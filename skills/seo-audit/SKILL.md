@@ -49,6 +49,18 @@ Reuse `scenario-mapper`'s page list. Don't duplicate `accessibility-audit`'s ter
 5. Aggregate duplicates across pages rather than reporting them per-page.
 6. Write the CSV, then a short chat summary — noindex/robots.txt blocking issues first, since those are the highest-severity findings by far.
 
+**Write the CSV with Python's `csv` module, never by joining strings.** Findings routinely
+contain commas and quotes (title tags, meta descriptions, URLs with query strings), and
+hand-built rows silently break column alignment on exactly those rows — the interesting ones.
+
+```python
+import csv, os
+os.makedirs('scenarios', exist_ok=True)
+with open('scenarios/seo-audit-findings.csv', 'w', newline='') as f:
+    w = csv.DictWriter(f, fieldnames=[...])
+    w.writeheader(); w.writerows(rows)
+```
+
 ## CSV columns
 
 | Column | Contents |

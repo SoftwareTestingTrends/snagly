@@ -38,3 +38,5 @@ docs/
 # Superpowers plugin session state and session work-products (plans/specs
 # from past working sessions — contain personal aliases and env specifics)
 .superpowers/
+
+

@@ -18,6 +18,48 @@ You're on Claude Code, so you likely have two ways to drive Playwright:
 
 Don't guess which one is available — check, then commit to one for the whole run. Mixing them mid-flow is a good way to lose track of session/auth state.
 
+**If the flow needs credentials, confirm you can actually reach them before opening the
+browser.** The target profile names env vars (`credentials.username_key` / `password_key`);
+check those variables are actually set in the environment (`printenv NAME >/dev/null`) — never
+print a value. Nothing auto-loads `.env`, and many agents refuse to read `.env` files at all,
+so the usual fix is for the user to `export` the vars in the shell they launched you from.
+
+**Filling a credential form: verify every field, then blur, then submit.** Auth forms are
+where "it looked filled but submitted empty" happens most, and the app's error is always the
+same generic "invalid email or password" whichever field was wrong. So after filling and
+before clicking submit, check **all** required fields at once:
+
+```
+[...document.querySelectorAll('input')].map(i => i.type + ':' + i.value.length).join(' ')
+```
+
+Every required field must be non-zero, and the lengths should match what you supplied. Then
+press Tab (or otherwise blur the last field) before submitting: React/Vue controlled inputs
+commit state on change/blur, and filling then immediately clicking can submit stale, empty
+state even though the DOM shows text.
+
+**If auth fails with credentials the user says work manually, it is a harness problem until
+proven otherwise.** Do not report it as an app defect. Work through, in order:
+
+1. Re-check the field lengths above — a fumbled element ref that put a value in the wrong
+   field is the most common cause, and it only ever shows up as "wrong credentials".
+2. Retry once using per-character typing (click the field, then type) instead of a direct
+   fill, which guarantees the framework's input events fire.
+3. Confirm the value itself survived the shell — `printf '%s' "$VAR" | wc -c`, length only,
+   never print it. Quotes in a `.env` line add two characters.
+
+Only after all three still fail is it worth calling the auth flow itself into question, and
+even then report it as BLOCKED with the diagnosis rather than as a defect. Filing "login is
+broken" when the harness mangled the input burns the team's trust in every later report. Note
+too that repeated failed attempts can trip provider rate limits, so later retries may fail for
+a different reason than the first.
+
+**Never end a run without a report.** If you can't start — credentials unreachable, no test
+account, the login page won't load, the profile is missing — stop immediately and write a
+**BLOCKED** report naming the one thing that's missing and how to supply it. A run that exits
+quietly, or leaves an empty run directory behind, reads to the next person (and to
+`report-generator`) as "ran and found nothing," which is worse than an obvious failure.
+
 ## Core principles (and why they matter)
 
 **Read before you act.** Always get a snapshot of the current page (accessibility tree, not a screenshot) before deciding what to click or type into. Act on the refs/roles the snapshot gives you, never on guessed pixel coordinates. Coordinate-based clicking breaks the moment a viewport size or layout shifts; the accessibility tree is stable, and reading it as you go means you're getting a free accessibility check on top of your flow test.
@@ -48,7 +90,7 @@ Always end with a structured report, not just prose:
 
 ```markdown
 ## Flow: [name, e.g. "Guest checkout"]
-**Result:** ✅ PASS / ❌ FAILED at step N / ⚠️ PASSED WITH WARNINGS
+**Result:** ✅ PASS / ❌ FAILED at step N / ⚠️ PASSED WITH WARNINGS / 🚧 BLOCKED (never started)
 
 | # | Step | Expected | Actual | Result |
 |---|------|----------|--------|--------|

@@ -56,7 +56,14 @@ takes longer and widens the window for the swap to land mid-capture.
 
 ## Compiling the gallery
 
-Default output is a single self-contained HTML file — embed each screenshot as a base64 data URI rather than linking to separate image files, so the whole gallery is genuinely one portable document with nothing to keep alongside it. This works well for a small-to-moderate page count. If the site has a large number of pages and base64-embedding would make the file unreasonably large, reference external image files from the HTML instead (still one gallery, just not literally one file) — use your judgement based on page count, and say which approach you used.
+Default output is a single self-contained HTML file — embed each screenshot as a base64 data URI rather than linking to separate image files, so the whole gallery is genuinely one portable document with nothing to keep alongside it. This works well for a small-to-moderate page count. If the site has a large number of pages and base64-embedding would make the file unreasonably large, reference external image files from the HTML instead (still one gallery, just not literally one file) — use your judgement based on page count, and say which approach you used. **Over ~10 MB total, switch to referencing files** — the PNGs sit beside the HTML anyway, and a browser handles ten separate images far better than one enormous document.
+
+**Screenshots are wider than you think — don't crush them.** A retina/full-page capture is commonly 2–3× the CSS viewport width (a 1440px viewport can yield a ~2700px image). Rendering that inside a narrow `max-width` container downscales it 2–3×, which blurs exactly the fine detail a reviewer is checking: nav text, borders, icon edges. So:
+
+- Give the gallery a **wide container** (`max-width: min(1600px, 96vw)`), not a text-column width like 1000px.
+- Style images `width: 100%; height: auto;` — never set both dimensions, which distorts aspect ratio.
+- **Link each image to its full-size file** (`<a href="home.png"><img …></a>`) so a reviewer can open the original at 1:1 instead of squinting at a downscale. Say in the gallery that images are clickable.
+- Full-page captures of long pages get very tall (10,000px+ is normal). That's fine — but note the capture's real pixel dimensions under each image so the reviewer knows what they're looking at.
 
 ```python
 import base64

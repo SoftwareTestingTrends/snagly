@@ -1,6 +1,6 @@
 ---
 name: start-testing
-description: Front door to the testing toolkit — works out which testing skill fits what the person actually wants, then hands off to it. Use whenever someone wants to test something but hasn't said (or doesn't know) which kind of check they need — "I want to test something", "what should I check", "can you test this site", "is the site okay", "help me run a test", "where do I start", "what can you do here", "run the usual checks", "check this before we ship". Also use when a request names a target but not a method ("check the signup flow", "have a look at staging"), or when someone new to the repo asks what testing is available here. Do not use when the request already clearly names a kind of check — an accessibility audit, a visual comparison, a bug reproduction — those skills should trigger directly, and routing through this one only adds a detour.
+description: Use whenever someone wants to test something but hasn't said (or doesn't know) which kind of check they need — "what can you test here", "what can you test on this site", "what can you do here", "what should I check", "can you test this site", "is the site okay", "help me run a test", "where do I start", "run the usual checks", "check this before we ship", "I want to test something". Also use when a request names a target but not a method ("check the signup flow", "have a look at staging"), or when someone new to the repo asks what testing is available here. Do not use when the request already clearly names a kind of check — an accessibility audit, a visual comparison, a bug reproduction — those skills should trigger directly, and routing through this one only adds a detour.
 ---
 
 # Start Testing
@@ -111,6 +111,14 @@ The second question, when it's still open, is **which site** — read
 `targets/*.yaml` and offer what's there by its friendly name, not its filename.
 If exactly one profile exists, don't ask; name it in your handoff sentence so
 they can correct you.
+
+If **no profile exists at all**, don't block on it: most read-only checks just need
+a URL. Take the URL, hand off, and let `scenario-mapper` write the profile as a
+by-product of its run (it carries the template). If the request needs credentials or
+mutation, that's when a profile becomes required — the shape is: `name`, `base_url`,
+`credentials` (`source` plus env-var *names*, never values), a prose `login` block,
+`tenants`, and optional `recovery` / `known_noise` / `app_notes`. On production, omit
+`safe_to_mutate` entirely rather than naming it "none".
 
 Never more than two questions. If a third feels necessary, the receiving skill
 should ask it — it has the context to ask well. Don't front-load the whole

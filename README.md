@@ -77,7 +77,26 @@ JIRA_PROJECT_KEY=PROJ     # default project for created issues (optional)
 
 The Jira vars can also live in `~/.jira-connector.env` (chmod 600) to be shared across repos — see `jira-connector`'s SKILL.md for the full resolution order.
 
-**Target profiles** — `targets/*.yaml` describes each app under test: base URL, where credentials come from, the login flow, which tenant is safe to mutate, known console noise to not re-flag, and hard-won app-specific notes. Skills read the profile before touching a site. Copy `targets/example.yaml` as a template when pointing the toolkit at a new app — your real profiles stay gitignored.
+**Getting app credentials into a run** — nothing auto-loads `.env`, and many agents refuse to read `.env` files at all as a secret-exfiltration guard. The reliable (and safer) pattern is to export the variables in the shell you launch the agent from:
+
+```bash
+export USER='you@example.com' PASSWORD='...'      # or: source .env
+```
+
+Commands then reference `"$PASSWORD"`, so the value never enters the agent's context or your terminal transcript. The Jira connector is the exception — its Python client reads `.env` directly.
+
+**Target profiles** — `targets/*.yaml` describes each app under test: base URL, where credentials come from, the login flow, which tenant is safe to mutate, known console noise to not re-flag, and hard-won app-specific notes. Skills read the profile before touching a site, and each run makes the next one cheaper by updating it.
+
+Set one up in whichever way suits you — **you don't have to write it by hand**:
+
+- **Easiest — let the toolkit write it.** In your project folder, ask: *"Explore https://yoursite.com and write a target profile for it."* `scenario-mapper` explores, then writes `targets/<name>.yaml` from its bundled template along with a scenario list.
+- **From the template.** If you cloned this repo, copy `targets/example.yaml`. If you installed the plugin or used skills.sh, grab it directly:
+  ```bash
+  mkdir -p targets
+  curl -o targets/example.yaml https://raw.githubusercontent.com/softwaretestingtrends/snagly/main/targets/example.yaml
+  ```
+
+Two rules the template explains: credentials are env-var **names**, never values, and on a production target you **omit `safe_to_mutate` entirely** — its absence is what makes `crud-tester` stop and ask instead of mutating live data. Keep your real profiles gitignored; they describe your internal environments.
 
 **Conventions**
 

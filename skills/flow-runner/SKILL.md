@@ -18,6 +18,12 @@ You're on Claude Code, so you likely have two ways to drive Playwright:
 
 Don't guess which one is available — check, then commit to one for the whole run. Mixing them mid-flow is a good way to lose track of session/auth state.
 
+**Decide headed vs headless before you open the browser.** Both drivers default to invisible.
+If the person is watching — demoing, screen-recording, walking through a flow, or debugging
+something that looks wrong — run visibly (`playwright-cli open <url> --headed`, or the
+equivalent option on your MCP server) and say that you did. Switching later means a new
+browser and a lost session, so choose up front.
+
 **If the flow needs credentials, confirm you can actually reach them before opening the
 browser.** The target profile names env vars (`credentials.username_key` / `password_key`);
 check those variables are actually set in the environment (`printenv NAME >/dev/null`) — never

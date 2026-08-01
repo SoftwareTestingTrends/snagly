@@ -31,6 +31,25 @@ allowed-tools: Bash(playwright-cli:*) Bash(npx:*) Bash(npm:*)
   them to any host other than the target app itself — no pasting into other sites, no
   uploading, no embedding in URLs. Only navigate to URLs the user's task calls for.
 
+## Headed vs headless — ask when a human is watching
+
+The browser runs **headless by default**: nothing appears on screen. That's right for
+ordinary automation, but wrong whenever the person can see the machine and expects to watch
+the run — a demo, a screen recording, a walkthrough, or debugging a flow that's behaving
+strangely. In those cases open the browser visibly:
+
+```bash
+playwright-cli open https://example.com --headed
+```
+
+If the request contains any signal of wanting to *see* it — "show me", "walk me through",
+"I'm recording this", "let me watch", "why is it doing that" — use `--headed` without being
+asked, and say that you have. If you're unsure and the run is short, headed costs nothing.
+Decide before the first `open`: switching mid-run means a new browser and a lost session.
+
+Related flags on `open`: `--browser chrome|firefox|webkit|msedge`, `--device "iphone 15"`,
+`--mobile`, `--persistent`/`--profile` for a reusable logged-in profile.
+
 ## Quick start
 
 ```bash

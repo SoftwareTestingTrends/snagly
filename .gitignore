@@ -39,4 +39,10 @@ docs/
 # from past working sessions — contain personal aliases and env specifics)
 .superpowers/
 
+# Recon/demo artifacts and agent scratch folders (contain live-site details)
+course-page.png
+*.png
+github-copilot/
 
+# Copied agent-session artifacts from other machines (contain live-site details)
+copilot-*

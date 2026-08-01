@@ -1,0 +1,44 @@
+# Target profile template — copy to targets/<app>-<env>.yaml and fill in.
+# These are ALL the fields any skill reads. Do not invent additional top-level keys:
+# discovered scenarios belong in the scenario CSV, not here.
+
+name: MyApp Staging                   # required — human label used in run reports
+base_url: https://staging.myapp.com/  # required — entry point
+
+credentials:                          # required if the app is gated
+  source: .env                        # file holding the secrets — NEVER values in this file
+  username_key: MYAPP_USER            # env var NAMES only
+  password_key: MYAPP_PASSWORD
+  # HOW THE VALUES REACH THE RUN: export them in the shell you launch the agent from
+  #   export MYAPP_USER='...' MYAPP_PASSWORD='...'
+  # Commands then reference "$MYAPP_PASSWORD" and the secret never enters the agent's
+  # context or the transcript. Prefer this: many agents refuse to read .env files at all
+  # (secret-exfiltration guard), and nothing auto-loads .env — `source .env` if you'd
+  # rather keep them in the file.
+
+login: |                              # prose recipe, top-level (not nested in credentials)
+  Fill the "Email" and "Password" textboxes, click "Sign in".
+  If a tenant/workspace picker follows, choose it by its visible label, then "Continue".
+  Landing page after login is /dashboard.
+
+tenants:
+  # safe_to_mutate: name it ONLY if a tenant exists whose data nobody depends on.
+  # On production, OMIT THE KEY ENTIRELY — its absence is what makes crud-tester stop
+  # and ask instead of guessing. Do not write "none" or "n/a" as a value: that reads
+  # as a tenant named "none".
+  safe_to_mutate: QA Sandbox
+  read_only_rich_data: Demo Org       # optional — realistic data for read-path testing
+
+recovery:                             # optional — known ways to unstick the app
+  stale_session: |
+    If a request 401s mid-session, log out and back in. If login then fails with
+    "already signed in", clear localStorage + cookies and retry.
+
+known_noise: []                       # optional — pre-existing console/network errors.
+                                      # Every entry must trace to a filed defect or an
+                                      # accepted condition; a stale entry hides regressions.
+
+app_notes: |                          # optional — field constraints and gotchas from prior runs
+  - Content renders ~3s after the load event (client-side fetch): assert on content,
+    not the load event.
+  - Phone field rejects "+" prefixes; enter digits only.

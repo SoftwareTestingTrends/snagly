@@ -1,8 +1,8 @@
 {
   "name": "snagly",
-  "displayName": "snagly",
-  "description": "Web QA testing skills for Claude Code — browser flows, accessibility, visual regression, performance, SEO, i18n, bug triage, and Jira filing, driven by Playwright.",
-  "version": "1.1.1",
+  "displayName": "Snagly",
+  "description": "Web QA testing skills for AI coding agents — browser flows, accessibility, visual regression, performance, SEO, i18n, bug triage, and Jira filing, driven by Playwright.",
+  "version": "1.1.2",
   "author": {
     "name": "Ambreen Khan"
   },

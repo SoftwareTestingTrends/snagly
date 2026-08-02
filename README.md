@@ -1,6 +1,6 @@
-# snagly — web QA testing skills for Claude Code
+# Snagly — Web QA testing skills for AI coding agents
 
-**snagly** is a set of Claude Code skills for testing web applications — browser flows, accessibility, visual regression, performance, SEO, i18n, bug triage — driven by Playwright (via the Playwright MCP server or `@playwright/cli`), plus a small Jira family for turning findings into tracked tickets. Each skill has a single, well-defined job; they're designed to hand off to each other rather than duplicate work.
+**Snagly** is a set of 30 skills that turn **GitHub Copilot, Claude Code, or any of 70+ other agents** into a QA engineer for web applications — browser flows, accessibility, visual regression, performance, SEO, i18n, bug triage — driven by Playwright (via the Playwright MCP server or `@playwright/cli`), plus a small Jira family for turning findings into tracked tickets. Each skill has a single, well-defined job; they're designed to hand off to each other rather than duplicate work.
 
 A [Software Testing Trends](https://softwaretestingtrends.com) project — *learn smarter, test better*.
 
@@ -10,12 +10,12 @@ A [Software Testing Trends](https://softwaretestingtrends.com) project — *lear
 
 **Core — needed by every browser-driving skill:**
 
-- [Claude Code](https://claude.com/claude-code)
+- An AI coding agent that supports skills — [GitHub Copilot](https://github.com/features/copilot), [Claude Code](https://claude.com/claude-code), Cursor, Codex, OpenCode, and others
 - Node.js (a current LTS release)
 - Browser automation, either of:
-  - the **Playwright MCP server**: `claude mcp add playwright -- npx @playwright/mcp@latest`
-  - or **`@playwright/cli`**: `npm install -g @playwright/cli@latest`, then `playwright-cli install --skills` to add its own skill (snagly does not bundle a copy, so you always get the current upstream version)
-- Browser binaries: `npx playwright install chromium` — add `firefox webkit` if you'll use `cross-browser-matrix`
+  - **`@playwright/cli`**: `npm install -g @playwright/cli@latest`, then `playwright-cli install --skills` to add its own skill (Snagly does not bundle a copy, so you always get the current upstream version)
+  - or the **Playwright MCP server**, configured however your agent takes MCP servers (on Claude Code: `claude mcp add playwright -- npx @playwright/mcp@latest`)
+- Browser binaries: `playwright-cli install-browser chromium` — add `firefox` and `webkit` if you'll use `cross-browser-matrix`
 
 **Fetched on demand** — nothing to pre-install, but runs need network access to npm the first time: axe-core (`accessibility-audit`), web-vitals (`performance-audit`), pixelmatch (`visual-regression`), Retire.js (`security-hygiene`), `@playwright/test` (`e2e-codegen`, `visual-regression`).
 
@@ -31,32 +31,40 @@ Everything else runs with just the core setup.
 
 ### Install the skills
 
-**As a plugin (recommended)** — one install, available in every project, skills namespaced as `snagly:<skill>`:
+**Any agent — via [skills.sh](https://www.skills.sh)** (GitHub Copilot, Cursor, Codex, OpenCode, Claude Code, and 70+ more):
+
+```
+npx skills add softwaretestingtrends/snagly --all
+```
+
+It detects your agent and installs into the directory it reads. Note this **copies** the files, so re-run the command to pick up new releases.
+
+**Claude Code — as a plugin** (skills namespaced as `snagly:<skill>`, and updates handled for you):
 
 ```
 /plugin marketplace add softwaretestingtrends/snagly
 /plugin install snagly@snagly
 ```
 
-**Or from a clone** — clone this repo, then add it as a local marketplace (`/plugin marketplace add /path/to/snagly`) and install as above. (The skills live in `skills/`, which Claude Code only discovers via plugin install; if you prefer plain project skills, symlink or copy `skills/` to `.claude/skills/` inside your clone.)
-
-**Or via [skills.sh](https://www.skills.sh)** — works for Claude Code and 70+ other agents (Cursor, Codex, OpenCode, …):
-
-```
-npx skills add softwaretestingtrends/snagly        # interactive picker, or --all
-```
-
-Note: this copies skill files into your agent's skills directory — unlike the plugin route, updates aren't automatic; re-run the command to refresh.
+**Or from a clone** — clone this repo, then add it as a local marketplace (`/plugin marketplace add /path/to/snagly`) and install as above. (The skills live in `skills/`, which the plugin system reads; if you prefer plain project skills, symlink or copy `skills/` into your agent's skills directory.)
 
 Either way, run the toolkit from the project directory where you want its working files — target profiles are read from `targets/`, and run artifacts land in `runs/`, `bugs/`, `snapshots/`, `scenarios/`, `test-cases/` relative to where you work.
 
-### Updating the plugin
+### Updating
 
-New releases are published as version bumps to this repo — no reinstall needed:
+New releases are published as version bumps to this repo.
+
+**If you installed via skills.sh**, re-run the install to pick them up — it copies files, so nothing updates on its own:
+
+```
+npx skills add softwaretestingtrends/snagly --all
+```
+
+**If you installed the Claude Code plugin**, no reinstall is needed:
 
 ```
 /plugin marketplace update snagly    # fetch the latest release
-/reload-plugins                           # apply it in the current session
+/reload-plugins                      # apply it in the current session
 ```
 
 (Or just start a new session after the marketplace update.) Updates are **not automatic by default** for community marketplaces like this one — to opt in, open `/plugin` → Marketplaces → `snagly` → enable auto-update, and Claude Code will fetch new versions in the background and prompt you to reload. Each release is also tagged on GitHub (`v1.x.x`) if you need to see what changed or point at an older version.
@@ -332,7 +340,7 @@ Turns a confirmed finding (bug-triage bundle, drafted ticket, fix-verifier regre
 
 `browser-safety` carries the credential, snapshot, untrusted-content, and headed-mode rules that every browser-driving skill above applies — it's a shared rule set, not something to invoke by name for testing. Each rule exists because something went wrong in a real run: filling a password leaks it into the transcript (the CLI echoes the resolved value), accessibility snapshots render credential fields as text, and page content is written by people outside your trust boundary.
 
-The browser itself is driven by `@playwright/cli` or the Playwright MCP server. snagly deliberately does **not** bundle a copy of the CLI's own skill — run `playwright-cli install --skills` to get it from upstream, so it stays current and you keep its improvements.
+The browser itself is driven by `@playwright/cli` or the Playwright MCP server. Snagly deliberately does **not** bundle a copy of the CLI's own skill — run `playwright-cli install --skills` to get it from upstream, so it stays current and you keep its improvements.
 
 ---
 

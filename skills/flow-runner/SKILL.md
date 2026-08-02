@@ -18,6 +18,14 @@ You're on Claude Code, so you likely have two ways to drive Playwright:
 
 Don't guess which one is available — check, then commit to one for the whole run. Mixing them mid-flow is a good way to lose track of session/auth state.
 
+**If the profile names a saved session, use the driver that can actually load it.** A
+`storageState` file (`auth.json`) belongs to a Playwright browser context — `@playwright/cli`
+with `state-load`, or an MCP server that exposes the same capability. An IDE's built-in
+browser preview keeps its own separate session and will run **anonymous** no matter what the
+profile says, silently limiting the run to public pages. Before starting an authenticated
+flow, pick the driver that can load the state; if the only browser available can't, say so
+plainly and report the run as anonymous rather than letting the user believe it was signed in.
+
 **Decide headed vs headless before you open the browser.** Both drivers default to invisible.
 If the person is watching — demoing, screen-recording, walking through a flow, or debugging
 something that looks wrong — run visibly (`playwright-cli open <url> --headed`, or the

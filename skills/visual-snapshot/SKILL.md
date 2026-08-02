@@ -11,6 +11,8 @@ Sweeps the site's main pages, takes a full-page screenshot of each under consist
 
 Reuse `scenario-mapper`'s page list (the `area` column of its CSV) if one already exists, rather than rediscovering the site's structure from scratch. If none exists, do a lightweight nav walk yourself — primary nav plus immediate children, the same shallow default depth as the mapper's sanity mode. This isn't meant to be an exhaustive crawl; it's a broad, representative sweep.
 
+**Cover the pages this session has actually been working on, not just a default idea of "main pages."** If earlier steps in the conversation visited particular pages — an authenticated dashboard, a specific course, a page under investigation — those are the ones the person most likely wants captured, and omitting them reads as an oversight. Before capturing, state the page list you're about to sweep so a missing page gets caught in one sentence rather than after the gallery is built. If the session was authenticated, say whether the capture is signed-in or anonymous: the same URL looks entirely different either way, and a gallery that silently mixes the two is misleading.
+
 This skill is also, incidentally, the capture half of what a future visual-regression skill would need — that skill would diff two runs of this same capture against each other to flag unintended changes over time. This skill doesn't do that diffing itself, but it's worth using a consistent naming/storage convention now (see below) so that extension is straightforward later rather than requiring a rebuild.
 
 ## Core principles (and why)

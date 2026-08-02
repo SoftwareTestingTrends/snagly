@@ -34,6 +34,13 @@ playwright-cli state-load auth.json      # every later run starts authenticated
 `auth.json` holds a live session: gitignore it and treat it like a password. Sessions expire,
 so regenerate it when a run unexpectedly lands on a login page.
 
+**A saved session only works in a driver that can load it.** `storageState` belongs to a
+Playwright browser context — `@playwright/cli` with `state-load`, or an MCP server exposing
+the same capability. An IDE's built-in browser preview keeps its own separate session and runs
+**anonymous** regardless of what the profile says, quietly limiting a run to public pages. Pick
+the driver that can load the state before starting; if none can, say the run is anonymous
+rather than letting the user believe it was signed in.
+
 If a run genuinely must fill credentials, use a throwaway account and tell the user that
 password is compromised and should be rotated. Don't bury that in a report — say it plainly.
 

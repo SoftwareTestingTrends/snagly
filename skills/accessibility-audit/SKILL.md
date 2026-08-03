@@ -46,6 +46,20 @@ Run these on every page/state you scan, alongside the automated pass:
 
 1. **Keyboard operability.** Tab through the page. Every interactive element — links, buttons, form fields, custom controls — should be reachable and operable without a mouse, and you should never get stuck unable to tab out of something (except an intentional modal focus trap, which should release and return focus to the trigger on close).
 2. **Focus visibility.** Every focused element should show a visible focus indicator. `outline: none` with nothing replacing it is a common, easy-to-miss failure.
+
+   **Never report a focus-visibility failure from computed styles alone — confirm it in a
+   screenshot.** This check produces false positives more readily than any other in this list,
+   for two reasons. Programmatic `element.focus()` does not reliably match `:focus-visible`, so
+   frameworks that build their ring from CSS variables (Tailwind's `--tw-ring-*`, for example)
+   read as fully transparent when they are in fact about to render a perfectly good ring. And
+   modern rings arrive as one layer inside a multi-layer `box-shadow` written in `oklab()` or
+   `color-mix()`, which is easy to parse wrongly and conclude nothing is there.
+
+   The reliable procedure: press **Tab** (real key, not `.focus()`), screenshot the element,
+   and compare it against the same element unfocused. If you cannot see a difference in the two
+   images, it is a finding. If you can, it is not — regardless of what `outline` computes to,
+   because the indicator may be a border change, a ring, or a background shift. `outline: none`
+   on its own is not evidence of anything.
 3. **Reading/tab order vs. visual order.** The order elements receive focus should roughly track their visual layout. A mismatch is disorienting for keyboard and screen-reader users even when each individual element is otherwise fine.
 4. **Alt text quality, not just presence.** Axe flags a missing `alt` attribute but can't judge whether the text there is meaningful — `"IMG_4021.jpg"` or `"image"` passes axe's check and fails the actual point. Decorative images should have empty `alt=""`, not a description that adds noise for screen reader users.
 5. **Dynamic content announcements.** When content updates without a page reload — search results appearing, a validation error, a toast — check whether it's exposed via `aria-live` or similar so screen reader users actually hear about it. A static scan won't catch a live region that's never triggered.

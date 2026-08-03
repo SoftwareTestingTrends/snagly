@@ -140,6 +140,11 @@ python3 "$JIRA" create --type "Test Case - SQA" --summary "Verify X" \
 python3 "$JIRA" create --type "Subtask - Test Case - SQA" --summary "Area scenario" \
   --fields-json child.json
 
+# Fix a field on an existing issue (only the fields you pass are touched)
+python3 "$JIRA" edit PROJ-123 --priority Highest                 # dry-run: shows payload
+python3 "$JIRA" edit PROJ-123 --priority Highest --apply
+python3 "$JIRA" edit PROJ-123 --labels qa,regression --apply     # NOTE: replaces the label set
+
 # Comment (plain text, or a rich ADF doc for embedded screenshots / tables / headings)
 python3 "$JIRA" comment PROJ-123 --body "Verified fixed in build 42."
 python3 "$JIRA" comment PROJ-123 --body-file review.md --apply

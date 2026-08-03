@@ -111,8 +111,15 @@ An illustrative example of what such a payload looks like:
 }
 ```
 
-**Severity/priority**: map from the finding's severity, but priority schemes are project-local —
-if unsure between two, ask; don't silently pick.
+**Severity/priority — set it on the create, every time.** Map the finding's severity to the
+project's priority scheme and pass `--priority` on the `create` itself. Omitting it doesn't
+leave the field blank; Jira silently defaults it (usually to Medium), so a Critical defect
+lands looking routine and the triage queue misleads everyone who reads it. Priority schemes
+are project-local, so if you're genuinely torn between two levels, ask — but never skip the
+flag to avoid deciding.
+
+If a ticket does get filed with the wrong value, fix it rather than leaving a note for a
+human: `edit <KEY> --priority <name>` (dry-run first, like every other write).
 
 **Privacy pass before anything leaves the machine**: staging screenshots and logs carry
 real-looking emails, names, tokens. Mask or crop them, and never paste credential

@@ -6,7 +6,7 @@ QE skills (user-story-reviewer, bug-analyzer, bug-creator, test-case-generator .
 each re-implement auth, JQL search, and ADF formatting.
 
 Read commands (safe, always run):  whoami, get, search, projects, fields, transitions
-Write commands (dry-run by default; require --apply):  create, comment, transition, link, attach
+Write commands (dry-run by default; require --apply):  create, edit, comment, transition, link, attach
 
 Auth comes from environment / a .env file in the repo root (or --env-file):
     JIRA_URL          e.g. https://your-org.atlassian.net
@@ -486,6 +486,38 @@ def cmd_create(cfg: Config, args) -> None:
                       "links": linked}, indent=2))
 
 
+def cmd_edit(cfg: Config, args) -> None:
+    """Update fields on an existing issue. Only the fields you pass are touched."""
+    fields: dict = {}
+    if getattr(args, "summary", None):
+        fields["summary"] = args.summary
+    if getattr(args, "priority", None):
+        fields["priority"] = {"name": args.priority}
+    if getattr(args, "labels", None):
+        fields["labels"] = [l.strip() for l in args.labels.split(",") if l.strip()]
+    if getattr(args, "adf_file", None):
+        fields["description"] = _load_adf_file(args.adf_file)
+    elif getattr(args, "description", None):
+        fields["description"] = text_to_adf(args.description)
+    if getattr(args, "fields_json", None):
+        fields.update(_load_fields_json(args.fields_json))
+    fields.update(_parse_kv_fields(getattr(args, "field", None)))
+    if not fields:
+        die("Nothing to edit. Pass at least one of --summary / --priority / --labels / "
+            "--description / --adf-file / --fields-json / --field.")
+    payload = {"fields": fields}
+
+    if not args.apply:
+        print(f"DRY RUN — no changes made. Would PUT /issue/{args.key} with:")
+        print(json.dumps(payload, indent=2))
+        print("\nNote: labels and multi-value fields are REPLACED, not merged.")
+        print("Re-run with --apply to update.")
+        return
+    request(cfg, "PUT", f"{API}/issue/{args.key}", body=payload)
+    print(json.dumps({"updated": args.key, "url": f"{cfg.base}/browse/{args.key}",
+                      "fields": sorted(fields.keys())}, indent=2))
+
+
 def cmd_link(cfg: Config, args) -> None:
     payload = {
         "type": {"name": args.type},
@@ -622,6 +654,18 @@ def build_parser() -> argparse.ArgumentParser:
     lk.add_argument("--type", default="Relates", help="Link type name (default Relates; e.g. Blocks, Cloners).")
     lk.add_argument("--apply", action="store_true", help="Apply changes. Without this flag, runs in dry-run mode.")
 
+    ed = sub.add_parser("edit", help="Update fields on an existing issue (dry-run unless --apply).")
+    ed.add_argument("key")
+    ed.add_argument("--summary", help="New summary line.")
+    ed.add_argument("--priority", help="Priority name, e.g. Highest / High / Medium.")
+    ed.add_argument("--labels", help="Comma-separated labels. REPLACES the existing set.")
+    ed.add_argument("--description", help="New description (plain text -> ADF).")
+    ed.add_argument("--adf-file", help="New description from a raw ADF JSON file. Overrides --description.")
+    ed.add_argument("--fields-json", help="JSON object merged into fields (custom fields).")
+    ed.add_argument("--field", action="append", metavar="NAME=VALUE",
+                    help="Set a simple string field (repeatable).")
+    ed.add_argument("--apply", action="store_true", help="Apply changes. Without this flag, runs in dry-run mode.")
+
     cm = sub.add_parser("comment", help="Comment on an issue (dry-run unless --apply).")
     cm.add_argument("key")
     cm.add_argument("--body", help="Comment text (plain text -> ADF).")
@@ -649,7 +693,7 @@ DISPATCH = {
     "whoami": cmd_whoami, "get": cmd_get, "comments": cmd_comments, "search": cmd_search,
     "projects": cmd_projects, "fields": cmd_fields, "transitions": cmd_transitions,
     "create": cmd_create, "comment": cmd_comment, "transition": cmd_transition,
-    "link": cmd_link, "attach": cmd_attach,
+    "link": cmd_link, "attach": cmd_attach, "edit": cmd_edit,
 }
 
 

@@ -26,7 +26,10 @@ Accept a bug from any of:
   is under suspicion), then fetch. Its comments aren't in the default fields — pull them explicitly:
   ```bash
   JIRA=$(ls "${CLAUDE_PROJECT_DIR:-.}"/skills/jira-connector/scripts/jira_client.py \
+            "${CLAUDE_PROJECT_DIR:-.}"/.agents/skills/jira-connector/scripts/jira_client.py \
+            "${CLAUDE_PROJECT_DIR:-.}"/.github/skills/jira-connector/scripts/jira_client.py \
             "${CLAUDE_PROJECT_DIR:-.}"/.claude/skills/jira-connector/scripts/jira_client.py \
+            "$HOME"/.agents/skills/jira-connector/scripts/jira_client.py \
             "$HOME"/.claude/skills/jira-connector/scripts/jira_client.py \
             "$HOME"/.claude/plugins/cache/*/snagly/*/skills/jira-connector/scripts/jira_client.py \
             2>/dev/null | head -1)

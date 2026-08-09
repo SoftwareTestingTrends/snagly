@@ -50,3 +50,4 @@ copilot-*
 # Archived local drafts — docs/ is ignored, so its archives must be too
 docs.zip
 *.zip
+auth.json

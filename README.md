@@ -1,8 +1,40 @@
-# Snagly — Web QA testing skills for AI coding agents
+<div align="center">
 
-**Snagly** is a set of 30 skills that turn **GitHub Copilot, Claude Code, or any of 70+ other agents** into a QA engineer for web applications — browser flows, accessibility, visual regression, performance, SEO, i18n, bug triage — driven by Playwright (via the Playwright MCP server or `@playwright/cli`), plus a small Jira family for turning findings into tracked tickets. Each skill has a single, well-defined job; they're designed to hand off to each other rather than duplicate work.
+# 🐞 Snagly
+
+### Web QA testing skills for AI coding agents
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-orange.svg)](LICENSE)
+[![Skills](https://img.shields.io/badge/skills-30-orange)](#the-skills)
+[![Agents](https://img.shields.io/badge/works%20with-70%2B%20agents-orange)](https://www.skills.sh/softwaretestingtrends/snagly)
+[![Playwright](https://img.shields.io/badge/powered%20by-Playwright-orange)](https://playwright.dev)
+
+**Turn GitHub Copilot, Claude Code, or any of 70+ other agents into a QA engineer for web apps.**
+
+```bash
+npx skills add softwaretestingtrends/snagly --all
+```
+
+[Watch it work](#-see-it-in-action) · [Get started](#getting-started) · [The skills](#the-skills) · [Why it refuses things](#design-notes)
+
+</div>
+
+---
+
+Browser flows, accessibility, visual regression, performance, SEO, i18n, bug triage — driven by Playwright (via the Playwright MCP server or `@playwright/cli`), plus a small Jira family for turning findings into tracked tickets. Each skill has a single, well-defined job; they're designed to hand off to each other rather than duplicate work.
 
 A [Software Testing Trends](https://softwaretestingtrends.com) project — *learn smarter, test better*.
+
+## 🎬 See it in action
+
+Both videos are unscripted runs against a **live production site** — no staged demo, nothing fixed beforehand.
+
+| | |
+|---|---|
+| **[Part 1 — 30 Agent Skills Find 11 Real Bugs](https://www.youtube.com/watch?v=Ra0v9ois_wU)**<br>Installed from an empty folder and pointed at a live site. A broken sitemap, a critical accessibility bug on the signup page, and a pricing bug nobody would find by hand. | [![Part 1](https://img.youtube.com/vi/Ra0v9ois_wU/mqdefault.jpg)](https://www.youtube.com/watch?v=Ra0v9ois_wU) |
+| **[Part 2 — Fix, Verify & Close Jira Tickets](https://www.youtube.com/watch?v=sVacuJO0TAM)**<br>Filing to Jira, fixing, then making the toolkit prove each fix landed. Including one finding that turned out to be wrong, and the fix that shipped the same day. | [![Part 2](https://img.youtube.com/vi/sVacuJO0TAM/mqdefault.jpg)](https://www.youtube.com/watch?v=sVacuJO0TAM) |
+
+📖 Full write-up: **[Test smarter with Snagly](https://dev.to/ambytious/test-smarter-with-snagly-30-open-source-qa-skills-for-ai-coding-agents-1571)** · 📚 [Skills reference](https://softwaretestingtrends.com/resources/the-ai-testers-kit/snagly-30-agent-skills-for-qa-workflows)
 
 ## Getting started
 
@@ -114,7 +146,7 @@ Two rules the template explains: credentials are env-var **names**, never values
 
 **First run** — just ask: *"What can you test here?"* — the `start-testing` skill routes from there.
 
-## How they fit together
+## 🧩 How they fit together
 
 ```
 ROUTE               start-testing is the front door: routes a vague "test this" to the right
@@ -153,198 +185,183 @@ Around that core loop:
 
 ---
 
-## Front Door
+## The skills
 
-### `start-testing`
+### 🚪 Front Door
+
+#### `start-testing`
 Routes a vague testing request to the right skill with as few questions as the request actually requires — often zero. Knows every skill's prerequisites (baselines, verified flows, safe tenants) and catches missing ones before handing off.
 > "Can you test this site?"
 > "What can you check here?"
 
----
+### 🔍 Discovery & Strategy
 
-## Discovery & Strategy
-
-### `scenario-mapper`
+#### `scenario-mapper`
 Explores a site with a real browser and outputs a CSV of candidate test scenarios — either a small **sanity** set (8–20 scenarios, "would this obviously break") or a **comprehensive** suite (happy path + negative/edge cases per flow).
 > "Explore mysite.com and find sanity testing scenarios"
 > "Build a full test suite for our checkout flow"
 
-### `test-case-writer`
+#### `test-case-writer`
 Expands a terse scenario into a detailed, persistent test-case document — preconditions, test data, numbered steps each with its own expected result. Sits between the terse CSV and a live execution run.
 > "Write a detailed test case for the login scenario"
 > "Turn scenario S003 into a full test case doc"
 
-### `test-plan`
+#### `test-plan`
 The strategy document above everything else: scope, risk-based priorities, cadence for each of the other skills, release exit criteria, environment/data conventions, and a coverage ledger of what's automated vs. manual.
 > "Write a test plan for our site"
 > "What should our testing strategy be before the next release?"
 
-### `qa-onboarding`
+#### `qa-onboarding`
 Synthesizes an onboarding document for a new QA teammate — the site's testing landscape (from `test-plan`), a curated tour of which skill to reach for and when, known trouble spots from recent bug-triage/report history, and a suggested first-week path. Uses this team's testing vocabulary freely — a different audience from `user-guide`, which is for end users.
 > "Write an onboarding guide for a new QA hire"
 > "Help me get a new teammate up to speed on our testing setup"
 
----
+### ▶️ Core Execution
 
-## Core Execution
-
-### `flow-runner`
+#### `flow-runner`
 Drives a browser through a defined scenario step by step, asserting the actual expected outcome at each step (not just that a click happened), and captures a full evidence bundle the moment anything fails. Deliberately stops before real side effects.
 > "Test the checkout flow end to end"
 > "Run test case TC-004"
 
-### `crud-tester`
+#### `crud-tester`
 The skill that's **allowed to mutate** — tests full data lifecycles (create → verify → edit → verify → delete → verify-gone) under strict self-containment rules: safe tenant only, run-marked records, mutates nothing it didn't create, delete-as-test cleanup.
 > "Test that creating and editing records actually persists"
 > "Run the CRUD suite"
 
-### `e2e-codegen`
+#### `e2e-codegen`
 Converts a scenario `flow-runner` has already verified into a permanent, runnable `@playwright/test` spec file — role-based locators, real assertions, no fixed-time waits, dynamic test data. Runs the generated file before handing it over.
 > "Turn the verified login scenario into a real Playwright test"
 > "Generate test code for TC-004"
 
-### `bug-triage`
+#### `bug-triage`
 Reproduces a reported or suspected bug, determines how reliably it reproduces, captures a full evidence bundle, and forms a root-cause hypothesis grounded only in what was actually observed.
 > "Reproduce this bug: the checkout button doesn't work"
 > "Is this actually broken, or is it flaky?"
 
-### `fix-verifier`
+#### `fix-verifier`
 Re-verifies previously-found defects against the current build: locates each defect's recorded minimal repro, re-runs it at the original rigor, and delivers a per-defect verdict — FIXED, STILL BROKEN, REGRESSED, or BLOCKED — updating the bug bundle and defect ledger in place.
 > "Is D4 fixed on the new build?"
 > "Re-check all the open bugs after the deploy"
 
----
+### 🧪 Behavioural & Interaction Checks
 
-## Behavioral & Interaction Checks
-
-### `network-assertion`
+#### `network-assertion`
 Mocks network responses to test error/loading/empty states a live backend won't reliably produce on demand, and asserts on real traffic (status codes, duplicate calls, payload shape).
 > "Test what happens if the payment API returns a 500"
 > "Check that no duplicate analytics calls fire during checkout"
 
-### `cross-browser-matrix`
+#### `cross-browser-matrix`
 Runs an existing scenario across browser engines (Chromium/Firefox/WebKit) and/or viewport sizes, scoped to whichever axis is actually needed, normalized into one comparison table.
 > "Does checkout work on Firefox and Safari?"
 > "Check this page on mobile"
 
-### `auth-session-audit`
+#### `auth-session-audit`
 Tests session/auth lifecycle edge cases: expiry mid-flow, concurrent sessions across simulated devices, logout propagation across tabs, remember-me persistence, password reset token reuse, back-button caching.
 > "Test what happens when a session expires mid-checkout"
 > "Check our auth edge cases — does logout work across tabs?"
 
-### `form-fuzzing`
+#### `form-fuzzing`
 Tests form fields with realistic edge-case inputs — empty, boundary-length, unicode, malformed formats, real-but-uncommon characters like apostrophes in names — to verify graceful handling. Explicitly a UX/robustness check, not security testing.
 > "Test our signup form with edge-case inputs"
 > "Fuzz the checkout form fields"
 
-### `email-verification`
+#### `email-verification`
 Verifies the email half of a flow end to end: triggers it in the browser, confirms the email arrives in a test-controlled inbox (plus-alias via a connected mail tool, or a disposable inbox), checks sender/subject/content against what the flow promised, inspects link hosts (catching staging→prod link bugs), and clicks through to complete the loop.
 > "Verify the password reset email arrives with a working link"
 > "Does the invite email actually get sent?"
 
----
+### 🩺 Site-Wide Audits
 
-## Site-Wide Audits
-
-### `accessibility-audit`
+#### `accessibility-audit`
 Runs an automated axe-core scan plus a defined set of manual checks (keyboard operability, focus order, alt-text quality, dynamic-content announcements) and reports findings by WCAG criterion and impact level.
 > "Run an accessibility audit on our site"
 > "Is this page WCAG compliant?"
 
-### `performance-audit`
+#### `performance-audit`
 Measures Core Web Vitals (LCP, INP, CLS) via the `web-vitals` library during real page interactions, rated against Google's published thresholds. Explicitly lab data, not the field data Google actually grades against.
 > "Check our Core Web Vitals"
 > "Is this page slow?"
 
-### `seo-audit`
+#### `seo-audit`
 Checks technical/structural SEO: titles, meta descriptions, canonical tags, meta robots (catching accidental noindex), structured data validity, robots.txt/sitemap sanity. Not keyword strategy or ranking prediction.
 > "Audit our page metadata"
 > "Check our robots.txt and sitemap for issues"
 
-### `i18n-audit`
+#### `i18n-audit`
 Checks translation coverage per locale, leaked untranslated template keys, RTL layout correctness, text-overflow from translation expansion, locale persistence, and hreflang tag correctness.
 > "Check our translations and RTL layout"
 > "Test locale switching on the site"
 
-### `link-audit`
+#### `link-audit`
 Exhaustively crawls the site (deeper than `scenario-mapper`'s curated pass) to find broken links, broken images, redirect loops, and long redirect chains.
 > "Crawl our site for broken links"
 > "Find any 404s on the site"
 
-### `security-hygiene`
+#### `security-hygiene`
 Checks basic security hygiene — HTTPS enforcement, mixed content, cookie security flags, common security headers, a narrow check for commonly-exposed accidental files (`.env`, `.git/config`, source maps), and known-vulnerable JS libraries via Retire.js. Explicitly hygiene, not a security audit or penetration test — no injection payloads, no exploit attempts, no confirming exploitability.
 > "Check our basic security hygiene"
 > "Are our cookies missing any security flags?"
 
----
+### 🖼️ Visual & Design
 
-## Visual & Design
-
-### `visual-snapshot`
+#### `visual-snapshot`
 Navigates main pages, captures full-page screenshots under consistent conditions, and compiles them into a single HTML gallery for quick human review.
 > "Take screenshots of all our main pages"
 > "Show me what every page looks like right now"
 
-### `visual-regression`
+#### `visual-regression`
 Diffs two `visual-snapshot` runs (a baseline and a current one) using pixel comparison, masking known-dynamic regions, to flag unintended visual changes for human review.
 > "Check for visual regressions since the last deploy"
 > "Did this change break how anything looks?"
 
-### `figma-compare`
+#### `figma-compare`
 Compares a Figma design against the live implementation — field-by-field structure, labels, required markers, dropdown option lists (extracted as text from the design, not eyeballed), conditional states, and visual styling. Judgment work with evidence, not pixel math; distinguishes "defect" from "stale mock" from "per-tenant config."
 > "Compare the Figma design against the signup form"
 > "Does this screen match the mock?"
 
----
+### 📝 Documentation
 
-## Documentation
-
-### `user-guide`
+#### `user-guide`
 Generates an end-user-facing how-to guide from a verified flow — a screenshot per step with the target element visually highlighted, and a plain-language instruction using the interface's own button/field labels. Written for end users, not QA; no testing jargon.
 > "Write a user guide for checkout"
 > "Create a how-to doc for signing up"
 
----
+### 📊 Reporting
 
-## Reporting
-
-### `report-generator`
+#### `report-generator`
 Synthesizes outputs from any of the other skills — potentially from several sessions across a testing cycle — into one prioritized, human-readable report. Doesn't drive a browser itself; reads what the others already produced.
 > "Summarize everything we found this week"
 > "Give me a report I can send to the team"
 
----
-
-## Jira & Defect Tracking
+### 🎫 Jira & Defect Tracking
 
 All Jira writes are dry-run until `--apply`.
 
-### `jira-connector`
+#### `jira-connector`
 The shared building block: read/write Jira Cloud via REST v3 (issue fetch, JQL search, create, comment, attach, link, transition) through a stdlib-only Python client. The higher-level skills shell out to this rather than re-implementing auth and ADF handling.
 > "Get PROJ-123"
 > "Find open bugs assigned to me"
 
-### `bug-analyzer`
+#### `bug-analyzer`
 Turns an existing bug report/ticket into ranked root-cause hypotheses, each tied to the code, commit, or log line that supports it — investigative leads with confidence levels, not verdicts. Best run inside the affected code repo.
 > "Analyze PROJ-123"
 > "Why is this stack trace happening?"
 
-### `bug-creator`
+#### `bug-creator`
 Turns a confirmed finding (bug-triage bundle, drafted ticket, fix-verifier regression) into a filed Jira Bug: dedupes against existing tickets first, composes an actionable description, attaches evidence, links related issues, and writes the new key back into the local ledger.
 > "File this bug in Jira"
 > "Create a ticket for D4"
 
----
+### 🛡️ Shared rules (not a check)
 
-## Shared rules (not a check)
-
-`browser-safety` carries the credential, snapshot, untrusted-content, and headed-mode rules that every browser-driving skill above applies — it's a shared rule set, not something to invoke by name for testing. Each rule exists because something went wrong in a real run: filling a password leaks it into the transcript (the CLI echoes the resolved value), accessibility snapshots render credential fields as text, and page content is written by people outside your trust boundary.
+#### `browser-safety`
+The credential, snapshot, untrusted-content, and headed-mode rules every browser-driving skill above applies — a shared rule set, not something to invoke by name. Each rule exists because something went wrong in a real run: filling a password leaks it into the transcript (the CLI echoes the resolved value), accessibility snapshots render credential fields as text, and page content is written by people outside your trust boundary.
 
 The browser itself is driven by `@playwright/cli` or the Playwright MCP server. Snagly deliberately does **not** bundle a copy of the CLI's own skill — run `playwright-cli install --skills` to get it from upstream, so it stays current and you keep its improvements.
 
 ---
 
-## Design notes
+## 🧭 Design notes
 
 A few things threaded through the whole toolkit, worth knowing before relying on it:
 
@@ -354,7 +371,7 @@ A few things threaded through the whole toolkit, worth knowing before relying on
 - **Findings close their loop** — a defect gets an ID and evidence bundle (bug-triage), becomes a tracked ticket (bug-creator), and is re-verified against later builds (fix-verifier), so nothing lives only in a chat transcript.
 - **Two topics were deliberately kept out of scope**: general visual-design opinion (aesthetic judgment isn't checkable the way everything else here is) and anything resembling security penetration testing (form-fuzzing, auth-session-audit, and security-hygiene all draw a hard line against injection payloads, exploit attempts, or probing undocumented limits).
 
-## Security model
+## 🔐 Security model
 
 Automated scanners rate some of these skills medium/high risk. That's a capability rating, not a finding — here is exactly what those capabilities are, so you can review before installing:
 

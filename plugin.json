@@ -1,0 +1,23 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "snagly",
+  "version": "1.2.1",
+  "description": "Web QA testing skills for AI coding agents — browser flows, accessibility, visual regression, performance, SEO, i18n, bug triage, and Jira filing, driven by Playwright.",
+  "author": {
+    "name": "Ambreen Khan",
+    "url": "https://softwaretestingtrends.com"
+  },
+  "homepage": "https://softwaretestingtrends.com",
+  "repository": "https://github.com/softwaretestingtrends/snagly",
+  "license": "MIT",
+  "keywords": [
+    "qa",
+    "testing",
+    "accessibility",
+    "playwright",
+    "seo",
+    "visual-regression",
+    "bug-triage",
+    "jira"
+  ]
+}

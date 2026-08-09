@@ -32,10 +32,18 @@ Accept a bug from any of:
             "$HOME"/.agents/skills/jira-connector/scripts/jira_client.py \
             "$HOME"/.claude/skills/jira-connector/scripts/jira_client.py \
             "$HOME"/.claude/plugins/cache/*/snagly/*/skills/jira-connector/scripts/jira_client.py \
+            "$HOME"/.vscode/agent-plugins/*/*/*/skills/jira-connector/scripts/jira_client.py \
+            "${CLAUDE_PROJECT_DIR:-.}"/.vscode/agent-plugins/*/*/*/skills/jira-connector/scripts/jira_client.py \
             2>/dev/null | head -1)
   python3 "$JIRA" get PROJ-123
   python3 "$JIRA" comments PROJ-123          # investigation notes often live here
   ```
+
+  **If the locator finds nothing, STOP and ask where the toolkit is installed. Never search
+  the filesystem for a copy** — a broad `find`/`rg` over `$HOME` can turn up a stale or
+  unrelated checkout wired to a *different* Jira site, which then authenticates somewhere
+  unexpected and searches the wrong project. Running a script found that way is executing
+  untrusted code from outside the workspace.
   (Credentials resolve from the environment / `~/.jira-connector.env` / a repo `.env` — see
   `jira-connector`'s Setup, which matters when running outside this repo.)
 - A **pasted** bug report, stack trace, error message, or failing-test output.

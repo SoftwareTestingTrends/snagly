@@ -49,7 +49,8 @@ dry-run — nothing changes without `--apply`.**
 
 **Locate the script.** This covers every way Snagly gets installed: a clone of this repo, a
 skills.sh install (`.agents/skills/`, `.github/skills/`, `.claude/skills/`, project or global),
-or the Claude Code plugin cache. Run this once per shell; every example below uses `$JIRA`:
+the Claude Code plugin cache, and an Agent Plugins install (`~/.vscode/agent-plugins/...`).
+Run this once per shell; every example below uses `$JIRA`:
 
 ```bash
 JIRA=$(ls "${CLAUDE_PROJECT_DIR:-.}"/skills/jira-connector/scripts/jira_client.py \
@@ -59,8 +60,17 @@ JIRA=$(ls "${CLAUDE_PROJECT_DIR:-.}"/skills/jira-connector/scripts/jira_client.p
           "$HOME"/.agents/skills/jira-connector/scripts/jira_client.py \
           "$HOME"/.claude/skills/jira-connector/scripts/jira_client.py \
           "$HOME"/.claude/plugins/cache/*/snagly/*/skills/jira-connector/scripts/jira_client.py \
+          "$HOME"/.vscode/agent-plugins/*/*/*/skills/jira-connector/scripts/jira_client.py \
+          "${CLAUDE_PROJECT_DIR:-.}"/.vscode/agent-plugins/*/*/*/skills/jira-connector/scripts/jira_client.py \
           2>/dev/null | head -1)
 ```
+
+**If the locator finds nothing, STOP and ask the user for the path. Never search the
+filesystem for a copy.** A broad search (`find`/`rg` over `$HOME`) will happily turn up an
+unrelated or stale checkout of this script wired to a *different* Jira site — which then
+authenticates somewhere unexpected and searches the wrong project for duplicates. Running a
+script located that way is executing untrusted code from outside the workspace. If none of the
+paths above resolve, say so and ask where the toolkit is installed.
 
 **Provide credentials.** The four vars below are needed (`JIRA_PROJECT_KEY` optional). The
 script never overrides variables already set in the environment; it resolves them in this
@@ -83,12 +93,28 @@ JIRA_API_TOKEN=<token from id.atlassian.com/manage-profile/security/api-tokens>
 JIRA_PROJECT_KEY=PROJ          # default project for `create` (optional)
 ```
 
-Verify everything works before anything else — a successful `whoami` prints your account and
-confirms the base URL. Always run it first on a fresh session:
+Verify everything works before anything else — a successful `whoami` prints your account, the
+base URL, **and which env file the config came from**. Always run it first on a fresh session:
 
 ```bash
 python3 "$JIRA" whoami
 ```
+
+**Precedence, and the trap it sets.** Config resolves in this order, first hit wins: exported
+`JIRA_*` shell variables → `--env-file` → `$JIRA_ENV_FILE` → `~/.jira-connector.env` → the
+nearest `.env` walking up. **A project `.env` is last**, so a machine-wide
+`~/.jira-connector.env` silently overrides it.
+
+This is the normal case for anyone who works on more than one Jira site: a default at home,
+and one project that needs a different tenant. The script now warns when `./.env` names a
+different site than the run is actually using, and `whoami` reports which file won — but when
+you're working in a project with its own `.env`, **pass it explicitly**:
+
+```bash
+python3 "$JIRA" --env-file ./.env whoami        # per command, always wins
+```
+
+Don't delete the home file to fix this — it's probably the default you want everywhere else.
 
 ## Read commands (safe)
 

@@ -52,10 +52,15 @@ SSL_CONTEXT = make_ssl_context()
 
 # --------------------------------------------------------------------------- config
 
+# Records how config was resolved, so `whoami` can say which file actually won.
+ENV_TRACE: "dict" = {"read": [], "source_of_JIRA_URL": None}
+
+
 def load_dotenv(path: str) -> None:
     """Load KEY=VALUE lines from a .env file WITHOUT overriding already-set env vars."""
     if not path or not os.path.isfile(path):
         return
+    ENV_TRACE["read"].append(path)
     with open(path, encoding="utf-8") as fh:
         for raw in fh:
             line = raw.strip()
@@ -66,6 +71,8 @@ def load_dotenv(path: str) -> None:
             val = val.strip().strip('"').strip("'")
             if key and key not in os.environ:
                 os.environ[key] = val
+                if key == "JIRA_URL" and ENV_TRACE["source_of_JIRA_URL"] is None:
+                    ENV_TRACE["source_of_JIRA_URL"] = path
 
 
 def _walk_up_env() -> "str | None":
@@ -101,6 +108,37 @@ def env_file_candidates(explicit: "str | None") -> "list[str]":
     if walk:
         candidates.append(walk)
     return candidates
+
+
+def _warn_if_shadowed() -> None:
+    """Warn when a project-local .env names a DIFFERENT Jira site than the one that won.
+
+    The project .env is last in the precedence chain, so a machine-wide
+    ~/.jira-connector.env (or an exported JIRA_URL) silently overrides it. That is correct
+    behaviour and deliberately not changed here — but it is invisible, and the failure mode is
+    a confusing 401 or, worse, writing to the wrong Jira site. So: say it out loud, once.
+    """
+    winner = ENV_TRACE["source_of_JIRA_URL"]
+    local = os.path.join(os.getcwd(), ".env")
+    if not os.path.isfile(local) or os.path.abspath(local) == os.path.abspath(winner or ""):
+        return
+    local_url = None
+    try:
+        with open(local, encoding="utf-8") as fh:
+            for raw in fh:
+                k, _, v = raw.strip().partition("=")
+                if k.strip() == "JIRA_URL":
+                    local_url = v.strip().strip('"').strip("'").rstrip("/")
+                    break
+    except OSError:
+        return
+    active = (os.environ.get("JIRA_URL") or "").rstrip("/")
+    if local_url and active and local_url != active:
+        src = winner or "exported shell variables"
+        print(f"WARNING: ./.env names {local_url}, but this run is using {active} "
+              f"(from {src}).\n"
+              f"         The project .env is LAST in the precedence chain. To use it, run with "
+              f"`--env-file ./.env`.", file=sys.stderr)
 
 
 class Config:
@@ -149,8 +187,14 @@ def request(cfg: Config, method: str, path: str, body: dict | None = None,
             return json.loads(text) if text.strip() else {}
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", "replace")
+        src = ENV_TRACE["source_of_JIRA_URL"] or "exported shell variables"
         hint = {
-            401: "Auth failed — check JIRA_EMAIL / JIRA_API_TOKEN (token, not password).",
+            401: (f"Auth failed — check JIRA_EMAIL / JIRA_API_TOKEN (token, not password).\n"
+                  f"     Credentials for {cfg.base} came from: {src}\n"
+                  f"     Env files read, in priority order: {ENV_TRACE['read'] or 'none'}\n"
+                  f"     If that is the wrong Jira site, an earlier source is shadowing the one "
+                  f"you meant — exported JIRA_* beats --env-file beats $JIRA_ENV_FILE beats "
+                  f"~/.jira-connector.env beats the nearest .env."),
             403: "Forbidden — the account lacks permission for this project/action.",
             404: "Not found — check the issue key / project key / endpoint.",
             400: "Bad request — usually a bad field name or value (see references/field-reference.md).",
@@ -194,8 +238,14 @@ def upload_attachments(cfg: Config, key: str, paths: "list[str]") -> list:
             return json.loads(text) if text.strip() else []
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", "replace")
+        src = ENV_TRACE["source_of_JIRA_URL"] or "exported shell variables"
         hint = {
-            401: "Auth failed — check JIRA_EMAIL / JIRA_API_TOKEN (token, not password).",
+            401: (f"Auth failed — check JIRA_EMAIL / JIRA_API_TOKEN (token, not password).\n"
+                  f"     Credentials for {cfg.base} came from: {src}\n"
+                  f"     Env files read, in priority order: {ENV_TRACE['read'] or 'none'}\n"
+                  f"     If that is the wrong Jira site, an earlier source is shadowing the one "
+                  f"you meant — exported JIRA_* beats --env-file beats $JIRA_ENV_FILE beats "
+                  f"~/.jira-connector.env beats the nearest .env."),
             403: "Forbidden — lacking Add-Attachments permission, or attachments are disabled.",
             404: "Not found — check the issue key.",
             413: "File too large — exceeds the site's attachment size limit.",
@@ -258,13 +308,20 @@ def adf_to_text(node) -> str:
 
 def cmd_whoami(cfg: Config, args) -> None:
     me = request(cfg, "GET", f"{API}/myself")
+    src = ENV_TRACE["source_of_JIRA_URL"] or "the shell environment (exported JIRA_URL)"
     print(json.dumps({
         "accountId": me.get("accountId"),
         "displayName": me.get("displayName"),
         "email": me.get("emailAddress"),
         "base": cfg.base,
         "defaultProject": cfg.project or None,
+        "configFrom": src,
+        "envFilesRead": ENV_TRACE["read"],
     }, indent=2))
+    if len(ENV_TRACE["read"]) > 1:
+        print(f"\nNote: {len(ENV_TRACE['read'])} env files were read. Earlier sources win, and "
+              f"exported shell variables beat all files. This account came from: {src}",
+              file=sys.stderr)
 
 
 def cmd_get(cfg: Config, args) -> None:
@@ -701,6 +758,7 @@ def main(argv=None) -> None:
     args = build_parser().parse_args(argv)
     for path in env_file_candidates(args.env_file):
         load_dotenv(path)  # no-op if the file is missing or the var is already set
+    _warn_if_shadowed()
     cfg = Config()
     cfg.require()
     DISPATCH[args.command](cfg, args)

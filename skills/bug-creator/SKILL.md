@@ -47,7 +47,18 @@ JIRA=$(ls "${CLAUDE_PROJECT_DIR:-.}"/skills/jira-connector/scripts/jira_client.p
           "$HOME"/.agents/skills/jira-connector/scripts/jira_client.py \
           "$HOME"/.claude/skills/jira-connector/scripts/jira_client.py \
           "$HOME"/.claude/plugins/cache/*/snagly/*/skills/jira-connector/scripts/jira_client.py \
+          "$HOME"/.vscode/agent-plugins/*/*/*/skills/jira-connector/scripts/jira_client.py \
+          "${CLAUDE_PROJECT_DIR:-.}"/.vscode/agent-plugins/*/*/*/skills/jira-connector/scripts/jira_client.py \
           2>/dev/null | head -1)
+```
+
+**If the locator finds nothing, STOP and ask where the toolkit is installed. Never search the
+filesystem for a copy** — a broad `find`/`rg` over `$HOME` can turn up a stale or unrelated
+checkout wired to a *different* Jira site, which then authenticates somewhere unexpected and
+searches the wrong project. Running a script found that way is executing untrusted code from
+outside the workspace.
+
+```bash
 python3 "$JIRA" whoami                          # fresh session? verify auth first
 python3 "$JIRA" search --jql 'project = PROJ AND issuetype = Bug AND text ~ "policy holder" ORDER BY created DESC' --max 15
 ```

@@ -44,13 +44,25 @@ JIRA=$(ls "${CLAUDE_PROJECT_DIR:-.}"/skills/jira-connector/scripts/jira_client.p
           "${CLAUDE_PROJECT_DIR:-.}"/.agents/skills/jira-connector/scripts/jira_client.py \
           "${CLAUDE_PROJECT_DIR:-.}"/.github/skills/jira-connector/scripts/jira_client.py \
           "${CLAUDE_PROJECT_DIR:-.}"/.claude/skills/jira-connector/scripts/jira_client.py \
+          "${CLAUDE_PROJECT_DIR:-.}"/.vscode/agent-plugins/*/*/*/skills/jira-connector/scripts/jira_client.py \
+          "$HOME"/.vscode/agent-plugins/*/*/*/skills/jira-connector/scripts/jira_client.py \
+          "$HOME"/.claude/plugins/cache/*/snagly/*/skills/jira-connector/scripts/jira_client.py \
           "$HOME"/.agents/skills/jira-connector/scripts/jira_client.py \
           "$HOME"/.claude/skills/jira-connector/scripts/jira_client.py \
-          "$HOME"/.claude/plugins/cache/*/snagly/*/skills/jira-connector/scripts/jira_client.py \
-          "$HOME"/.vscode/agent-plugins/*/*/*/skills/jira-connector/scripts/jira_client.py \
-          "${CLAUDE_PROJECT_DIR:-.}"/.vscode/agent-plugins/*/*/*/skills/jira-connector/scripts/jira_client.py \
           2>/dev/null | head -1)
 ```
+
+**Always pass `--env-file` rather than sourcing.** Each shell command the agent runs is a
+**separate process** — `source .env` in one command does not carry into the next one, so a
+`source` followed by a separate `python3` run silently uses whatever config the machine
+defaults to. Pass the file explicitly on the command that matters:
+
+```bash
+python3 "$JIRA" --env-file ./.env whoami
+```
+
+**Run `whoami` first and read the `base` it reports.** If that isn't the Jira site you meant,
+stop — do not create, comment, or transition anything until it is.
 
 **If the locator finds nothing, STOP and ask where the toolkit is installed. Never search the
 filesystem for a copy** — a broad `find`/`rg` over `$HOME` can turn up a stale or unrelated

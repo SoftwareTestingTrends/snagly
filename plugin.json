@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "snagly",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Web QA testing skills for AI coding agents — browser flows, accessibility, visual regression, performance, SEO, i18n, bug triage, and Jira filing, driven by Playwright.",
   "author": {
     "name": "Ambreen Khan",

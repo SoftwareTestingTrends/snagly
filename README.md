@@ -8,6 +8,7 @@
 [![Skills](https://img.shields.io/badge/skills-30-orange)](#the-skills)
 [![Agents](https://img.shields.io/badge/works%20with-70%2B%20agents-orange)](https://www.skills.sh/softwaretestingtrends/snagly)
 [![Playwright](https://img.shields.io/badge/powered%20by-Playwright-orange)](https://playwright.dev)
+[![Agent Plugins](https://img.shields.io/badge/Agent%20Plugins-v1.0.0-orange)](https://agent-plugins.org)
 
 **Turn GitHub Copilot, Claude Code, or any of 70+ other agents into a QA engineer for web apps.**
 
@@ -63,6 +64,14 @@ Everything else runs with just the core setup.
 
 ### Install the skills
 
+**As an [Agent Plugin](https://agent-plugins.org)** — the vendor-neutral standard supported by ChatGPT, Codex, Cursor, GitHub Copilot, Kiro and VS Code. Point your client at the repo:
+
+```
+https://github.com/softwaretestingtrends/snagly
+```
+
+In VS Code: enable `chat.plugins.enabled`, then **Chat → Agent Customizations → Plugins → Install Plugin from Source**.
+
 **Any agent — via [skills.sh](https://www.skills.sh)** (GitHub Copilot, Cursor, Codex, OpenCode, Claude Code, and 70+ more):
 
 ```
@@ -91,6 +100,8 @@ New releases are published as version bumps to this repo.
 ```
 npx skills add softwaretestingtrends/snagly --all
 ```
+
+**If you installed as an Agent Plugin**, reinstall from the same repo URL in your client to pick up a new release.
 
 **If you installed the Claude Code plugin**, no reinstall is needed:
 

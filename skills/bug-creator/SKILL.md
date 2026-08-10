@@ -3,8 +3,6 @@ name: bug-creator
 description: Use when a defect needs to become a Jira ticket — takes a finding from any source (a bug-triage bundle, a drafted ticket markdown, a figma-compare/fix-verifier finding, or a defect described in conversation), checks Jira for duplicates first, then files a well-structured Bug with evidence attached and links back, via jira-connector (dry-run first, always). Trigger on "file this bug", "create a ticket for this", "raise this in Jira", "log a defect for D4", or when a testing skill ends with a confirmed defect the user wants tracked. Distinct from bug-analyzer (which investigates causes of an existing ticket) and bug-triage (which establishes that something IS a bug — unverified findings route there first, because a filed bug that doesn't reproduce burns the team's trust in every future report).
 compatibility: Needs jira-connector (same auth setup — env vars, ~/.jira-connector.env, or repo .env). Reads local evidence bundles (bugs/, runs/) when present. All Jira writes dry-run by default; --apply only after the user nods.
 allowed-tools: Read Grep Glob Write Bash(python3:*)
-metadata:
-  version: "1.0"
 ---
 
 # Bug Creator
@@ -153,14 +151,17 @@ values from `.env`/localStorage into a ticket.
 ```bash
 python3 "$JIRA" create --type Bug --summary "..." --adf-file bug-adf.json \
   --fields-json bug-fields.json \
-  --labels qa,figma-compare --link "Relates:PROJ-100"           # dry-run: shows payload
+  --labels qa,figma-compare --link "Relates:PROJ-100"           # dry-run: shows a summary
 # user reviews → re-run with --apply
 python3 "$JIRA" attach PROJ-NEW --file evidence1.png --file console.log --apply
 ```
 
 Show the user the draft **as readable markdown in chat** (not raw ADF JSON or the dry-run
 payload dump) and get an explicit nod before `--apply` — repo-wide convention, never bypass
-it. Attach the evidence files after create; reference them by filename in the description
+it. The dry-run itself prints a summary plus a section outline and writes the full payload to
+a temp file; if you need the exact JSON, read that file rather than re-running with
+`--print-payload`. **Never approve a payload you only saw part of** — if any output looks
+truncated, read the payload file before asking for the nod. Attach the evidence files after create; reference them by filename in the description
 (already written that way in step 2). Give evidence files descriptive names before attaching
 (`profile-country-clears-phone.png`, not `1.png`).
 

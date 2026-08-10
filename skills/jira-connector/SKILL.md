@@ -3,8 +3,6 @@ name: jira-connector
 description: Use when the user wants to read from or write to Jira Cloud — fetch an issue, run a JQL search, list projects/fields/transitions, or create issues, comments, and status transitions. The reusable Jira building block that higher-level QE skills (bug-analyzer, bug-creator) call. e.g. "get PROJ-123", "find open bugs assigned to me", "create a bug in PROJ".
 compatibility: Requires Python 3.10+ and network access to your Jira Cloud site. Auth (JIRA_URL, JIRA_EMAIL, JIRA_API_TOKEN, JIRA_PROJECT_KEY) from the environment, ~/.jira-connector.env, $JIRA_ENV_FILE, --env-file, or a repo .env — so it runs from any repo, not just this one. Standard library only — no pip install. All write commands default to dry-run; pass --apply to execute.
 allowed-tools: Bash(python3:*) Read Write
-metadata:
-  version: "1.0"
 ---
 
 # Jira Connector
@@ -155,8 +153,15 @@ read [references/jql-cookbook.md](references/jql-cookbook.md).
 
 ## Write commands (dry-run by default — add `--apply` to execute)
 
-Every write prints exactly what it would send, then stops. Review it, then re-run with
+Every write shows exactly what it would send, then stops. Review it, then re-run with
 `--apply`. This is the repo-wide convention — do not bypass it.
+
+`create`, `edit`, and `comment` print a **readable summary** — the fields being set plus a
+section outline of the ADF description — and write the full JSON payload to a temp file whose
+path is printed at the end. A six-section bug description is ~350 lines of nested ADF; dumping
+that inline overflows the terminal buffer, and a truncated payload is one you cannot actually
+review. Read the payload file if you need the exact JSON, or pass `--print-payload` to get the
+old inline dump.
 
 ```bash
 # Create an issue (uses JIRA_PROJECT_KEY unless --project given)
@@ -177,7 +182,7 @@ python3 "$JIRA" create --type "Subtask - Test Case - SQA" --summary "Area scenar
   --fields-json child.json
 
 # Fix a field on an existing issue (only the fields you pass are touched)
-python3 "$JIRA" edit PROJ-123 --priority Highest                 # dry-run: shows payload
+python3 "$JIRA" edit PROJ-123 --priority Highest                 # dry-run: shows a summary
 python3 "$JIRA" edit PROJ-123 --priority Highest --apply
 python3 "$JIRA" edit PROJ-123 --labels qa,regression --apply     # NOTE: replaces the label set
 

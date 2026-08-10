@@ -26,12 +26,17 @@ import mimetypes
 import os
 import ssl
 import sys
+import tempfile
 import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
 
 API = "/rest/api/3"
+
+PRINT_PAYLOAD_HELP = ("Dump the full request JSON inline instead of a readable summary. "
+                     "By default a dry-run prints a summary and writes the full payload to a "
+                     "temp file, so a long ADF description can't overflow the terminal buffer.")
 
 
 def make_ssl_context() -> ssl.SSLContext:
@@ -455,6 +460,77 @@ def _load_adf_file(path: str) -> dict:
     return doc
 
 
+def _node_text(node) -> str:
+    """Flatten an ADF node's text content recursively into a plain string."""
+    if isinstance(node, list):
+        return "".join(_node_text(n) for n in node)
+    if not isinstance(node, dict):
+        return ""
+    if node.get("type") == "text":
+        return node.get("text", "")
+    return _node_text(node.get("content", []))
+
+
+def _clip(text: str, width: int = 72) -> str:
+    text = " ".join(text.split())
+    return text if len(text) <= width else text[: width - 1] + "…"
+
+
+def _adf_outline(doc) -> "list[str]":
+    """Render an ADF doc as a short structural outline — one line per top-level node.
+
+    This is what a reviewer actually needs at the dry-run gate: which sections exist and
+    roughly what is in them. The full tree goes to a file (see `_write_payload`)."""
+    lines = []
+    for node in (doc or {}).get("content", []) or []:
+        ntype = node.get("type")
+        text = _node_text(node)
+        if ntype == "heading":
+            level = (node.get("attrs") or {}).get("level", 1)
+            lines.append(f"{'#' * int(level)} {_clip(text)}")
+        elif ntype in ("bulletList", "orderedList"):
+            items = node.get("content", []) or []
+            marker = "•" if ntype == "bulletList" else "1."
+            first = _clip(_node_text(items[0]), 56) if items else ""
+            lines.append(f"  {marker} {len(items)} item(s)" + (f": {first}" if first else ""))
+        elif ntype == "codeBlock":
+            lines.append(f"  [code block, {len(text.splitlines())} line(s)]")
+        elif text:
+            lines.append(f"  {_clip(text)}")
+        else:
+            lines.append(f"  [{ntype}]")
+    return lines
+
+
+def _write_payload(payload: dict, slug: str) -> str:
+    """Write the full request payload to a stable temp path so it can be read on demand.
+
+    The name is deterministic per command+target, so repeated dry-runs overwrite rather
+    than accumulating stale payload files."""
+    safe = "".join(c if c.isalnum() or c in "-_" else "-" for c in slug)
+    path = os.path.join(tempfile.gettempdir(), f"jira-dryrun-{safe}.json")
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(payload, fh, indent=2, ensure_ascii=False)
+    return path
+
+
+def _print_description(fields: dict, label: str = "Description") -> None:
+    """Print an ADF description/body as a labelled outline, if there is one."""
+    doc = fields.get("description") if isinstance(fields, dict) else None
+    if not isinstance(doc, dict):
+        return
+    nodes = doc.get("content", []) or []
+    print(f"  {label:<11} ADF, {len(nodes)} node(s), {len(_node_text(doc))} chars of text")
+    for line in _adf_outline(doc):
+        print(f"    {line}")
+
+
+def _payload_footer(payload: dict, slug: str) -> None:
+    """Tell the reader where the full payload is, and how to get it inline instead."""
+    print(f"\nFull payload: {_write_payload(payload, slug)}")
+    print("(re-run with --print-payload to print it inline instead)")
+
+
 def _load_fields_json(path: str) -> dict:
     """Load a JSON object of extra fields to merge into the create payload's `fields`."""
     with open(path, encoding="utf-8") as fh:
@@ -527,10 +603,26 @@ def cmd_create(cfg: Config, args) -> None:
     links = _parse_links(getattr(args, "link", None))
 
     if not args.apply:
-        print("DRY RUN — no issue created. Would POST /issue with:")
-        print(json.dumps(payload, indent=2))
+        if getattr(args, "print_payload", False):
+            print("DRY RUN — no issue created. Would POST /issue with:")
+            print(json.dumps(payload, indent=2, ensure_ascii=False))
+        else:
+            print("DRY RUN — no issue created. Would POST /issue:\n")
+            print(f"  {'Project':<11} {project}")
+            print(f"  {'Type':<11} {args.type}")
+            print(f"  {'Summary':<11} {fields.get('summary')}")
+            if fields.get("priority"):
+                print(f"  {'Priority':<11} {(fields['priority'] or {}).get('name')}")
+            if fields.get("labels"):
+                print(f"  {'Labels':<11} {', '.join(fields['labels'])}")
+            custom = sorted(k for k in fields if k.startswith("customfield_"))
+            if custom:
+                print(f"  {'Custom':<11} {', '.join(custom)}")
+            _print_description(fields)
         for lk in links:
             print(f"...then link: NEW --{lk['type']}--> {lk['key']}")
+        if not getattr(args, "print_payload", False):
+            _payload_footer(payload, f"create-{project}")
         print("\nRe-run with --apply to create.")
         return
     res = request(cfg, "POST", f"{API}/issue", body=payload)
@@ -565,8 +657,25 @@ def cmd_edit(cfg: Config, args) -> None:
     payload = {"fields": fields}
 
     if not args.apply:
-        print(f"DRY RUN — no changes made. Would PUT /issue/{args.key} with:")
-        print(json.dumps(payload, indent=2))
+        if getattr(args, "print_payload", False):
+            print(f"DRY RUN — no changes made. Would PUT /issue/{args.key} with:")
+            print(json.dumps(payload, indent=2, ensure_ascii=False))
+        else:
+            print(f"DRY RUN — no changes made. Would PUT /issue/{args.key}:\n")
+            for name in ("summary", "priority", "labels"):
+                if name not in fields:
+                    continue
+                value = fields[name]
+                if isinstance(value, dict):
+                    value = value.get("name")
+                elif isinstance(value, list):
+                    value = ", ".join(str(v) for v in value)
+                print(f"  {name.capitalize():<11} {value}")
+            custom = sorted(k for k in fields if k.startswith("customfield_"))
+            if custom:
+                print(f"  {'Custom':<11} {', '.join(custom)}")
+            _print_description(fields)
+            _payload_footer(payload, f"edit-{args.key}")
         print("\nNote: labels and multi-value fields are REPLACED, not merged.")
         print("Re-run with --apply to update.")
         return
@@ -601,8 +710,13 @@ def cmd_comment(cfg: Config, args) -> None:
             die("Empty comment. Pass --body, --body-file, or --adf-file.")
         payload = {"body": text_to_adf(text)}
     if not args.apply:
-        print(f"DRY RUN — no comment added to {args.key}. Would POST:")
-        print(json.dumps(payload, indent=2))
+        if getattr(args, "print_payload", False):
+            print(f"DRY RUN — no comment added to {args.key}. Would POST:")
+            print(json.dumps(payload, indent=2, ensure_ascii=False))
+        else:
+            print(f"DRY RUN — no comment added to {args.key}. Would POST:\n")
+            _print_description({"description": payload["body"]}, label="Body")
+            _payload_footer(payload, f"comment-{args.key}")
         print("\nRe-run with --apply to post.")
         return
     res = request(cfg, "POST", f"{API}/issue/{args.key}/comment", body=payload)
@@ -703,6 +817,7 @@ def build_parser() -> argparse.ArgumentParser:
                         "e.g. --link 'Relates:PROJ-100'. Applied only with --apply.")
     c.add_argument("--labels", help="Comma-separated labels.")
     c.add_argument("--priority", help="Priority name (e.g. High).")
+    c.add_argument("--print-payload", action="store_true", help=PRINT_PAYLOAD_HELP)
     c.add_argument("--apply", action="store_true", help="Apply changes. Without this flag, runs in dry-run mode.")
 
     lk = sub.add_parser("link", help="Link two existing issues (dry-run unless --apply).")
@@ -721,6 +836,7 @@ def build_parser() -> argparse.ArgumentParser:
     ed.add_argument("--fields-json", help="JSON object merged into fields (custom fields).")
     ed.add_argument("--field", action="append", metavar="NAME=VALUE",
                     help="Set a simple string field (repeatable).")
+    ed.add_argument("--print-payload", action="store_true", help=PRINT_PAYLOAD_HELP)
     ed.add_argument("--apply", action="store_true", help="Apply changes. Without this flag, runs in dry-run mode.")
 
     cm = sub.add_parser("comment", help="Comment on an issue (dry-run unless --apply).")
@@ -730,6 +846,7 @@ def build_parser() -> argparse.ArgumentParser:
     cm.add_argument("--adf-file", help="Read the comment from a file containing a raw ADF JSON doc "
                     "(used verbatim; enables embedded media/screenshots, tables, headings). "
                     "Overrides --body/--body-file.")
+    cm.add_argument("--print-payload", action="store_true", help=PRINT_PAYLOAD_HELP)
     cm.add_argument("--apply", action="store_true", help="Apply changes. Without this flag, runs in dry-run mode.")
 
     at = sub.add_parser("attach", help="Upload file attachment(s) to an issue (dry-run unless --apply).")

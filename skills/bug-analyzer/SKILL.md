@@ -3,8 +3,6 @@ name: bug-analyzer
 description: Use when the user shares a bug report, stack trace, failing test, or Jira issue and wants likely root causes and related code identified — returns ranked, evidence-cited hypotheses (the file:line, the commit, the log), not verdicts. Fetches the bug from Jira and can post the analysis back (dry-run) via jira-connector. e.g. "analyze PROJ-123", "why is this stack trace happening?", "root-cause this failing test".
 compatibility: Prompt-driven analysis, best run inside the affected repo (needs code + git history). Optionally reads a Jira issue and posts the analysis back via jira-connector (writes dry-run by default).
 allowed-tools: Read Grep Glob Bash(git:*) Bash(python3:*)
-metadata:
-  version: "1.0"
 ---
 
 # Bug Analyzer
@@ -145,7 +143,7 @@ If the bug came from a Jira issue and the user wants the analysis recorded, form
 hypotheses as a comment and post via `jira-connector` — **dry-run first**, then `--apply`:
 ```bash
 # $JIRA resolved as in Inputs above
-python3 "$JIRA" comment PROJ-123 --body-file analysis.md          # dry-run: shows payload
+python3 "$JIRA" comment PROJ-123 --body-file analysis.md          # dry-run: shows a summary
 python3 "$JIRA" comment PROJ-123 --body-file analysis.md --apply  # post it
 ```
 Frame the comment as "candidate root causes (hypotheses)", not a fix declaration — a human
